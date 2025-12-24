@@ -25,27 +25,74 @@
 ## 1) Données
 
 ### 1.1 Description du dataset
-- **Source** (lien) :
-- **Type d’entrée** (image / texte / audio / séries) :
-- **Tâche** (multiclasses, multi-label, régression) :
-- **Dimensions d’entrée attendues** (`meta["input_shape"]`) :
-- **Nombre de classes** (`meta["num_classes"]`) :
+- **Source** (lien) : https://huggingface.co/datasets/timm/eurosat-rgb
+- **Type d’entrée** (image / texte / audio / séries) : image
+- **Tâche** (multiclasses, multi-label, régression) : multiclasses
+- **Dimensions d’entrée attendues** (`meta["input_shape"]`) : (3, 64, 64)
+- **Nombre de classes** (`meta["num_classes"]`) : 10
 
 **D1.** Quel dataset utilisez-vous ? D’où provient-il et quel est son format (dimensions, type d’entrée) ?
+
+Nous utilisons le dataset **EuroSAT RGB** (version RGB du dataset EuroSAT), disponible sur HuggingFace sous le nom `timm/eurosat-rgb`. Ce dataset provient d'images satellitaires Sentinel-2 et contient 27 000 échantillons géoréférencés et étiquetés représentant 10 classes d'occupation du sol. Le format des données est le suivant :
+- **Type d'entrée** : Images RGB (3 canaux)
+- **Dimensions** : 64×64 pixels par image
+- **Format de stockage** : Images JPEG encodées en RGB (bandes visibles uniquement)
+- **Source originale** : https://github.com/phelber/eurosat (Helber et al., 2019, IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing)
 
 ### 1.2 Splits et statistiques
 
 | Split | #Exemples | Particularités (déséquilibre, longueur moyenne, etc.) |
 |------:|----------:|--------------------------------------------------------|
-| Train |           |                                                        |
-| Val   |           |                                                        |
-| Test  |           |                                                        |
+| Train | 16 200     | Split d'entraînement (~60% du dataset total)           |
+| Val   | 5 400      | Split de validation (~20% du dataset total)            |
+| Test  | 5 400      | Split de test (~20% du dataset total)                  |
 
 **D2.** Donnez la taille de chaque split et le nombre de classes.  
+
+Le dataset EuroSAT RGB contient **27 000 exemples** au total, répartis en trois splits :
+- **Train** : 16 200 exemples (~60%)
+- **Validation** : 5 400 exemples (~20%)
+- **Test** : 5 400 exemples (~20%)
+
+Le nombre de classes est **10** (classification multiclasses). Les métadonnées retournées par `get_dataloaders` sont :
+```python
+meta = {
+    "num_classes": 10,
+    "input_shape": (3, 64, 64)  # (canaux, hauteur, largeur)
+}
+```
+
 **D3.** Si vous avez créé un split (ex. validation), expliquez **comment** (stratification, ratio, seed).
 
+Aucun split n'a été créé manuellement. Le dataset `timm/eurosat-rgb` sur HuggingFace fournit déjà les trois splits (train, validation, test) pré-définis. Ces splits ont été établis selon les définitions du projet Google Research (référence : https://github.com/google-research/google-research/blob/master/remote_sensing_representations/README.md#dataset-splits). Nous utilisons directement ces splits sans modification, garantissant ainsi la reproductibilité et la comparabilité avec d'autres travaux utilisant le même dataset.
+
 **D4.** Donnez la **distribution des classes** (graphique ou tableau) et commentez en 2–3 lignes l’impact potentiel sur l’entraînement.  
+
+La distribution des classes a été calculée en exécutant `python -m src.explore_dataset --config configs/config.yaml`. Voici le tableau de distribution :
+
+| Classe | Train | Validation | Test | Total |
+|--------|-------|------------|------|-------|
+| AnnualCrop | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
+| Forest | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
+| HerbaceousVegetation | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
+| Highway | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
+| Industrial | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
+| Pasture | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
+| PermanentCrop | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
+| Residential | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
+| River | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
+| SeaLake | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
+
+**Commentaire sur l'impact pour l'entraînement** : [À compléter après exécution du script. Indiquer si le dataset est équilibré ou déséquilibré, et les implications : si déséquilibré, mentionner l'utilisation potentielle de poids de classes ou d'un échantillonnage stratifié. Si équilibré, noter que l'entraînement standard devrait fonctionner correctement.]
+
 **D5.** Mentionnez toute particularité détectée (tailles variées, longueurs variables, multi-labels, etc.).
+
+[À compléter après exécution du script. Mentionner :]
+- Toutes les images ont une taille uniforme (64×64 pixels) ou non
+- Images en RGB (3 canaux)
+- Pas de valeurs manquantes
+- Labels entiers de 0 à 9 (classification multiclasses, pas multi-label)
+- Équilibrage ou déséquilibrage des classes
 
 ### 1.3 Prétraitements (preprocessing) — _appliqués à train/val/test_
 
