@@ -66,45 +66,62 @@ meta = {
 
 Aucun split n'a été créé manuellement. Le dataset `timm/eurosat-rgb` sur HuggingFace fournit déjà les trois splits (train, validation, test) pré-définis. Ces splits ont été établis selon les définitions du projet Google Research (référence : https://github.com/google-research/google-research/blob/master/remote_sensing_representations/README.md#dataset-splits). Nous utilisons directement ces splits sans modification, garantissant ainsi la reproductibilité et la comparabilité avec d'autres travaux utilisant le même dataset.
 
-**D4.** Donnez la **distribution des classes** (graphique ou tableau) et commentez en 2–3 lignes l’impact potentiel sur l’entraînement.  
+**D4.** Donnez la **distribution des classes** (graphique ou tableau) et commentez en 2–3 lignes l'impact potentiel sur l'entraînement.  
 
 La distribution des classes a été calculée en exécutant `python -m src.explore_dataset --config configs/config.yaml`. Voici le tableau de distribution :
 
 | Classe | Train | Validation | Test | Total |
 |--------|-------|------------|------|-------|
-| AnnualCrop | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
-| Forest | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
-| HerbaceousVegetation | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
-| Highway | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
-| Industrial | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
-| Pasture | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
-| PermanentCrop | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
-| Residential | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
-| River | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
-| SeaLake | [à compléter] | [à compléter] | [à compléter] | [à compléter] |
+| AnnualCrop | 1 791 | 613 | 596 | 3 000 |
+| Forest | 1 787 | 605 | 608 | 3 000 |
+| HerbaceousVegetation | 1 799 | 628 | 573 | 3 000 |
+| Highway | 1 505 | 499 | 496 | 2 500 |
+| Industrial | 1 492 | 507 | 501 | 2 500 |
+| Pasture | 1 195 | 409 | 396 | 2 000 |
+| PermanentCrop | 1 481 | 481 | 538 | 2 500 |
+| Residential | 1 863 | 583 | 554 | 3 000 |
+| River | 1 460 | 511 | 529 | 2 500 |
+| SeaLake | 1 827 | 564 | 609 | 3 000 |
+| **TOTAL** | **16 200** | **5 400** | **5 400** | **27 000** |
 
-**Commentaire sur l'impact pour l'entraînement** : [À compléter après exécution du script. Indiquer si le dataset est équilibré ou déséquilibré, et les implications : si déséquilibré, mentionner l'utilisation potentielle de poids de classes ou d'un échantillonnage stratifié. Si équilibré, noter que l'entraînement standard devrait fonctionner correctement.]
+**Commentaire sur l'impact pour l'entraînement** : Le dataset est relativement équilibré avec un ratio max/min de 1.56 (classe la plus fréquente : 1 863 exemples en train, classe la moins fréquente : 1 195 exemples). Cette légère différence n'est pas suffisante pour nécessiter des poids de classes ou un échantillonnage stratifié. L'entraînement standard avec une fonction de perte CrossEntropyLoss devrait fonctionner correctement sans biais significatif vers les classes majoritaires.
 
 **D5.** Mentionnez toute particularité détectée (tailles variées, longueurs variables, multi-labels, etc.).
 
-[À compléter après exécution du script. Mentionner :]
-- Toutes les images ont une taille uniforme (64×64 pixels) ou non
-- Images en RGB (3 canaux)
-- Pas de valeurs manquantes
-- Labels entiers de 0 à 9 (classification multiclasses, pas multi-label)
-- Équilibrage ou déséquilibrage des classes
+Les particularités suivantes ont été détectées lors de l'exploration du dataset :
+
+- ✓ **Toutes les images ont une taille uniforme** : 64×64 pixels (vérifié sur un échantillon de 100 images)
+- ✓ **Images en RGB** : 3 canaux (mode RGB confirmé)
+- ✓ **Pas de valeurs manquantes** : dataset complet avec 27 000 exemples étiquetés
+- ✓ **Labels entiers de 0 à 9** : classification multiclasses (une seule classe par image, pas multi-label)
+- ✓ **Distribution des classes relativement équilibrée** : ratio max/min = 1.56, ce qui est acceptable pour un entraînement standard
+
+Aucune particularité problématique n'a été détectée. Le dataset est prêt pour l'entraînement sans nécessiter de prétraitements spéciaux au-delà de la normalisation standard.
 
 ### 1.3 Prétraitements (preprocessing) — _appliqués à train/val/test_
 
 Listez précisément les opérations et paramètres (valeurs **fixes**) :
 
-- Vision : resize = __, center-crop = __, normalize = (mean=__, std=__)…
-- Audio : resample = __ Hz, mel-spectrogram (n_mels=__, n_fft=__, hop_length=__), AmplitudeToDB…
-- NLP : tokenizer = __, vocab = __, max_length = __, padding/truncation = __…
-- Séries : normalisation par canal, fenêtrage = __…
+- **Vision** :
+  - `Resize` : (64, 64) — redimensionnement à 64×64 pixels
+  - `ToTensor` : conversion PIL Image → tensor PyTorch (normalise [0, 255] → [0.0, 1.0])
+  - `Normalize` : mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225] (statistiques ImageNet)
 
 **D6.** Quels **prétraitements** avez-vous appliqués (opérations + **paramètres exacts**) et **pourquoi** ?  
+
+Les prétraitements suivants sont appliqués dans l'ordre suivant (via `torchvision.transforms.Compose`) :
+
+1. **`Resize(64, 64)`** : Redimensionne toutes les images à 64×64 pixels. Bien que les images EuroSAT RGB soient déjà à cette taille (vérifié lors de l'exploration), cette étape garantit l'uniformité et permet de gérer d'éventuelles variations. Cette opération est nécessaire pour que toutes les images aient exactement la même dimension d'entrée pour le modèle.
+
+2. **`ToTensor()`** : Convertit l'image PIL (format H×W×C, valeurs entières 0-255) en tensor PyTorch (format C×H×W, valeurs flottantes normalisées [0.0, 1.0]). Cette conversion est essentielle car PyTorch travaille avec des tensors, et la normalisation des valeurs dans [0, 1] améliore la stabilité numérique lors de l'entraînement.
+
+3. **`Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])`** : Normalise chaque canal RGB en soustrayant la moyenne et en divisant par l'écart-type. Ces valeurs correspondent aux statistiques ImageNet, couramment utilisées pour les CNNs entraînés from scratch. La normalisation centre les données autour de zéro et réduit la variance, ce qui accélère la convergence et améliore la stabilité de l'entraînement. Bien que ces statistiques ne soient pas spécifiques à EuroSAT, elles sont appropriées pour un CNN from scratch et permettent une comparaison avec d'autres travaux.
+
+**Ordre d'application** : Resize → ToTensor → Normalize (l'ordre est important : ToTensor doit précéder Normalize car cette dernière opère sur des tensors).
+
 **D7.** Les prétraitements diffèrent-ils entre train/val/test (ils ne devraient pas, sauf recadrage non aléatoire en val/test) ?
+
+Non, les prétraitements sont **identiques** pour train, validation et test. Toutes les transformations (Resize, ToTensor, Normalize) sont déterministes et appliquées de la même manière sur les trois splits. Aucun recadrage aléatoire n'est utilisé dans les prétraitements (les augmentations aléatoires sont appliquées séparément, uniquement sur le split d'entraînement, via `get_augmentation_transforms`). Cette cohérence garantit que les données de validation et de test sont évaluées dans les mêmes conditions, permettant une comparaison équitable des performances.
 
 ### 1.4 Augmentation de données — _train uniquement_
 
