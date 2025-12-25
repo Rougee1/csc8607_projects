@@ -44,13 +44,15 @@ class EuroSATDataset(torch.utils.data.Dataset):
         # Label (entier)
         label = item['label']
         
-        # Appliquer preprocessing (toujours)
-        if self.preprocess:
-            image = self.preprocess(image)
-        
-        # Appliquer augmentation (seulement si fournie, donc pour train)
+        # IMPORTANT: Appliquer augmentation AVANT preprocessing
+        # Les augmentations (RandomCrop, RandomFlip, ColorJitter) fonctionnent sur PIL Images
+        # Le preprocessing (ToTensor, Normalize) convertit en tensor
         if self.augment:
             image = self.augment(image)
+        
+        # Appliquer preprocessing (toujours, après augmentation)
+        if self.preprocess:
+            image = self.preprocess(image)
         
         return image, label
 
