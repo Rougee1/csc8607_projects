@@ -126,21 +126,75 @@ Non, les prétraitements sont **identiques** pour train, validation et test. Tou
 ### 1.4 Augmentation de données — _train uniquement_
 
 - Liste des **augmentations** (opérations + **paramètres** et **probabilités**) :
-  - ex. Flip horizontal p=0.5, RandomResizedCrop scale=__, ratio=__ …
-  - Audio : time/freq masking (taille, nb masques) …
-  - Séries : jitter amplitude=__, scaling=__ …
+  - **RandomHorizontalFlip** : probabilité p=0.5 (50% de chance d'appliquer le flip)
+  - **RandomCrop** : taille (64, 64), padding=4 pixels
+  - **ColorJitter** : brightness=0.1 (±10%), contrast=0.1 (±10%), saturation=0.1 (±10%), hue=0.0 (pas de variation de teinte)
 
 **D8.** Quelles **augmentations** avez-vous appliquées (paramètres précis) et **pourquoi** ?  
+
+Les augmentations suivantes sont appliquées **uniquement au split d'entraînement** dans l'ordre suivant :
+
+1. **`RandomCrop(size=(64, 64), padding=4)`** : Recadre aléatoirement une zone de 64×64 pixels de l'image après avoir ajouté 4 pixels de padding autour. Cette augmentation ajoute de la variabilité spatiale en simulant différentes vues ou cadrages de la même scène. Le padding permet de ne pas perdre d'information en ajoutant des pixels (par répétition) autour de l'image avant le recadrage. **Justification** : Les images satellitaires peuvent être capturées sous différents angles ou avec des cadrages légèrement différents, tout en représentant la même classe d'occupation du sol.
+
+2. **`RandomHorizontalFlip(p=0.5)`** : Retourne horizontalement l'image avec une probabilité de 50%. **Justification** : Les images satellitaires peuvent être visualisées sous différentes orientations sans changer la nature de la scène. Un champ agricole reste un champ agricole même si on le retourne horizontalement. Cette augmentation double virtuellement la taille du dataset d'entraînement et améliore la robustesse du modèle aux variations d'orientation.
+
+3. **`ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.0)`** : Applique des variations aléatoires légères de couleur (±10% pour brightness, contrast, saturation, pas de variation de teinte). **Justification** : Les images satellitaires peuvent présenter des variations d'éclairage dues aux conditions météorologiques, à l'heure de la journée, à la saison, ou aux conditions atmosphériques. Ces variations ne changent pas la classe de l'image (un résidentiel reste résidentiel même avec un éclairage différent). Les paramètres sont choisis légers (±10%) pour rester réalistes et ne pas trop déformer l'apparence naturelle des images.
+
+**Ordre d'application** : RandomCrop → RandomHorizontalFlip → ColorJitter. L'ordre est important : RandomCrop doit être appliqué en premier pour travailler sur l'image complète (avant padding), puis les autres transformations sont appliquées sur l'image recadrée.
+
+**Impact attendu** : Ces augmentations augmentent la diversité des données d'entraînement sans changer les labels, ce qui réduit le risque de sur-apprentissage et améliore la généralisation du modèle à de nouvelles images.
+
 **D9.** Les augmentations **conservent-elles les labels** ? Justifiez pour chaque transformation retenue.
+
+Oui, **toutes les augmentations appliquées sont label-preserving** (elles ne changent pas la classe de l'image). Voici la justification pour chaque transformation :
+
+1. **RandomCrop** : Le recadrage aléatoire ne change que la zone visible de l'image, pas son contenu sémantique. Une image de "Forest" recadrée reste une forêt, une image de "Residential" recadrée reste résidentielle. Le padding de 4 pixels est suffisamment petit pour ne pas introduire d'artefacts significatifs qui changeraient la classe.
+
+2. **RandomHorizontalFlip** : Le retournement horizontal est une transformation géométrique qui préserve la structure et le contenu de l'image. Les caractéristiques visuelles qui définissent une classe (par exemple, la texture d'une forêt, la structure d'un bâtiment résidentiel) restent reconnaissables après un flip horizontal. Cette transformation est couramment utilisée en vision par ordinateur car elle préserve les labels tout en augmentant la diversité des données.
+
+3. **ColorJitter** : Les variations de couleur (brightness, contrast, saturation) modifient uniquement l'apparence visuelle de l'image, pas sa structure sémantique. Un champ agricole reste un champ agricole même si l'éclairage est légèrement différent. Les paramètres sont choisis légers (±10%) pour rester dans des limites réalistes qui ne changent pas fondamentalement l'apparence de la scène. La teinte (hue) n'est pas modifiée (hue=0.0) car une variation de teinte pourrait changer la perception des couleurs naturelles (par exemple, un champ vert pourrait apparaître jaune), ce qui pourrait être problématique pour la classification.
+
+**Conclusion** : Toutes les augmentations sont conçues pour simuler des variations naturelles qui peuvent survenir dans les images satellitaires réelles, tout en préservant l'identité de la classe. Aucune transformation ne modifie la structure sémantique ou le contenu qui définit la classe d'occupation du sol.
 
 ### 1.5 Sanity-checks
 
 - **Exemples** après preprocessing/augmentation (insérer 2–3 images/spectrogrammes) :
 
-> _Insérer ici 2–3 captures illustrant les données après transformation._
+> _Les exemples visuels ont été générés en exécutant `python -m src.verify_pipeline --config configs/config.yaml` et sont sauvegardés dans `artifacts/train_examples_augmented.png` et `artifacts/val_examples.png`._
 
 **D10.** Montrez 2–3 exemples et commentez brièvement.  
-**D11.** Donnez la **forme exacte** d’un batch train (ex. `(batch, C, H, W)` ou `(batch, seq_len)`), et vérifiez la cohérence avec `meta["input_shape"]`.
+
+Les exemples suivants illustrent les données après preprocessing et augmentation :
+
+**Exemples train (avec augmentation)** :
+- Image 1 : [À insérer depuis artifacts/train_examples_augmented.png]
+- Image 2 : [À insérer depuis artifacts/train_examples_augmented.png]
+- Image 3 : [À insérer depuis artifacts/train_examples_augmented.png]
+
+**Exemples validation (sans augmentation)** :
+- Image 1 : [À insérer depuis artifacts/val_examples.png]
+- Image 2 : [À insérer depuis artifacts/val_examples.png]
+
+**Commentaire** : Les images train montrent les effets des augmentations (flip horizontal, recadrage aléatoire, variations de couleur légères), tandis que les images validation sont fixes et représentent fidèlement les données originales. Les images sont correctement normalisées (valeurs dans la plage attendue après normalisation ImageNet) et ont la forme (3, 64, 64) comme attendu. Les labels correspondent bien aux classes (0-9).
+
+**D11.** Donnez la **forme exacte** d'un batch train (ex. `(batch, C, H, W)` ou `(batch, seq_len)`), et vérifiez la cohérence avec `meta["input_shape"]`.
+
+La forme exacte d'un batch train est : `(batch_size, 3, 64, 64)` où :
+- `batch_size` : nombre d'exemples par batch (configuré à 64 dans `config.yaml`)
+- `3` : nombre de canaux RGB (correspond à `meta["input_shape"][0]`)
+- `64` : hauteur en pixels (correspond à `meta["input_shape"][1]`)
+- `64` : largeur en pixels (correspond à `meta["input_shape"][2]`)
+
+**Vérification de cohérence** :
+- `meta["input_shape"] = (3, 64, 64)` (format C, H, W)
+- Forme d'un batch : `(batch_size, 3, 64, 64)` (format batch_size, C, H, W)
+- **Cohérence** : ✓ OUI — Les dimensions spatiales et de canaux correspondent exactement. La seule différence est l'ajout de la dimension `batch_size` en première position, ce qui est attendu pour les batchs PyTorch.
+
+**Vérifications supplémentaires** :
+- Les labels ont la forme `(batch_size,)` avec des valeurs entières dans [0, 9]
+- La plage de valeurs des images après normalisation est environ [-2.0, 2.0] (cohérent avec la normalisation ImageNet)
+- Le DataLoader train a le shuffle activé (ordre aléatoire des exemples)
+- Les DataLoaders validation et test ont le shuffle désactivé (ordre fixe pour reproductibilité)
 
 ---
 
