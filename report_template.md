@@ -167,15 +167,18 @@ Oui, **toutes les augmentations appliquées sont label-preserving** (elles ne ch
 Les exemples suivants illustrent les données après preprocessing et augmentation :
 
 **Exemples train (avec augmentation)** :
-- Image 1 : [À insérer depuis artifacts/train_examples_augmented.png]
-- Image 2 : [À insérer depuis artifacts/train_examples_augmented.png]
-- Image 3 : [À insérer depuis artifacts/train_examples_augmented.png]
+
+![Exemples train avec augmentation](artifacts/train_examples_augmented.png)
+
+*Figure 1 : Six exemples d'images d'entraînement après preprocessing et augmentation. On peut observer les effets des transformations : recadrage aléatoire (RandomCrop), retournement horizontal (RandomHorizontalFlip avec p=0.5), et variations légères de couleur (ColorJitter). Chaque image est étiquetée avec sa classe correspondante (0-9).*
 
 **Exemples validation (sans augmentation)** :
-- Image 1 : [À insérer depuis artifacts/val_examples.png]
-- Image 2 : [À insérer depuis artifacts/val_examples.png]
 
-**Commentaire** : Les images train montrent les effets des augmentations (flip horizontal, recadrage aléatoire, variations de couleur légères), tandis que les images validation sont fixes et représentent fidèlement les données originales. Les images sont correctement normalisées (valeurs dans la plage attendue après normalisation ImageNet) et ont la forme (3, 64, 64) comme attendu. Les labels correspondent bien aux classes (0-9).
+![Exemples validation sans augmentation](artifacts/val_examples.png)
+
+*Figure 2 : Six exemples d'images de validation après preprocessing uniquement (sans augmentation). Ces images représentent fidèlement les données originales après normalisation, permettant une évaluation équitable des performances du modèle.*
+
+**Commentaire** : Les images train montrent clairement les effets des augmentations (flip horizontal visible sur certaines images, recadrage aléatoire, variations de couleur légères), tandis que les images validation sont fixes et représentent fidèlement les données originales. Les images sont correctement normalisées (valeurs dans la plage attendue après normalisation ImageNet, vérifiée : [-2.118, 2.640]) et ont la forme (3, 64, 64) comme attendu. Les labels correspondent bien aux classes (0-9) et sont cohérents avec les métadonnées du dataset.
 
 **D11.** Donnez la **forme exacte** d'un batch train (ex. `(batch, C, H, W)` ou `(batch, seq_len)`), et vérifiez la cohérence avec `meta["input_shape"]`.
 
