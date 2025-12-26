@@ -13,6 +13,10 @@ import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
 import os
+import matplotlib
+matplotlib.use('Agg')  # Backend non-interactif pour serveur
+import matplotlib.pyplot as plt
+import numpy as np
 from src.model import build_model
 from src.utils import set_seed, get_device, count_parameters, save_config_snapshot
 from src.data_loading import get_dataloaders
@@ -148,6 +152,11 @@ def main():
     print(f"ENTRAÎNEMENT ({args.epochs} époques)")
     print(f"{'='*60}")
     
+    # Stocker les valeurs de loss pour le graphique
+    epoch_losses = []
+    iteration_losses = []
+    iteration_steps = []
+    
     for epoch in range(args.epochs):
         model.train()
         epoch_loss = 0.0
@@ -172,8 +181,15 @@ def main():
             # Logger à chaque itération
             global_step = epoch * len(small_train_loader) + batch_idx
             writer.add_scalar('train/loss', loss.item(), global_step)
+            
+            # Stocker pour le graphique
+            iteration_losses.append(loss.item())
+            iteration_steps.append(global_step)
         
         avg_loss = epoch_loss / num_batches if num_batches > 0 else 0.0
+        
+        # Stocker la loss moyenne par époque
+        epoch_losses.append(avg_loss)
         
         # Logger aussi par époque
         writer.add_scalar('train/loss_epoch', avg_loss, epoch)
@@ -189,6 +205,48 @@ def main():
     
     writer.close()
     
+    # Créer le graphique
+    print(f"\nGénération du graphique...")
+    artifacts_dir = config['paths']['artifacts_dir']
+    os.makedirs(artifacts_dir, exist_ok=True)
+    
+    # Graphique 1: Loss par époque
+    plt.figure(figsize=(10, 6))
+    epochs_range = range(1, len(epoch_losses) + 1)
+    plt.plot(epochs_range, epoch_losses, 'b-o', linewidth=2, markersize=6, label='Loss moyenne par époque')
+    plt.xlabel('Époque', fontsize=12)
+    plt.ylabel('Loss', fontsize=12)
+    plt.title(f'Overfit Small - Loss d\'entraînement\n({args.overfit_size} exemples, LR={lr}, blocks={model_config["blocks_per_stage"]}, dilation={model_config["dilation_stage3"]})', fontsize=14)
+    plt.grid(True, alpha=0.3)
+    plt.legend(fontsize=11)
+    plt.yscale('log')  # Échelle logarithmique pour mieux voir la descente
+    plt.tight_layout()
+    
+    # Sauvegarder le graphique
+    plot_filename = f"overfit_small_loss_{args.overfit_size}ex.png"
+    plot_path = os.path.join(artifacts_dir, plot_filename)
+    plt.savefig(plot_path, dpi=150, bbox_inches='tight')
+    plt.close()
+    print(f"✓ Graphique sauvegardé: {plot_path}")
+    
+    # Graphique 2: Loss par itération (plus détaillé)
+    if len(iteration_losses) > 0:
+        plt.figure(figsize=(12, 6))
+        plt.plot(iteration_steps, iteration_losses, 'b-', linewidth=1.5, alpha=0.7, label='Loss par itération')
+        plt.xlabel('Itération', fontsize=12)
+        plt.ylabel('Loss', fontsize=12)
+        plt.title(f'Overfit Small - Loss d\'entraînement (détaillé)\n({args.overfit_size} exemples, {len(epoch_losses)} époques)', fontsize=14)
+        plt.grid(True, alpha=0.3)
+        plt.legend(fontsize=11)
+        plt.yscale('log')
+        plt.tight_layout()
+        
+        plot_filename_detailed = f"overfit_small_loss_detailed_{args.overfit_size}ex.png"
+        plot_path_detailed = os.path.join(artifacts_dir, plot_filename_detailed)
+        plt.savefig(plot_path_detailed, dpi=150, bbox_inches='tight')
+        plt.close()
+        print(f"✓ Graphique détaillé sauvegardé: {plot_path_detailed}")
+    
     # Résumé
     print(f"\n{'='*60}")
     print("RÉSUMÉ")
@@ -201,9 +259,11 @@ def main():
     print(f"  - LR: {lr}, Weight decay: {weight_decay}")
     print(f"\n✓ Logs TensorBoard sauvegardés dans: {log_dir}")
     print(f"  Visualiser avec: tensorboard --logdir {log_dir}")
-    print(f"\n✓ Capture TensorBoard requise pour le rapport (section M3):")
-    print(f"  - Tag: train/loss")
-    print(f"  - Montrer la descente vers ~0")
+    print(f"\n✓ Graphiques sauvegardés dans: {artifacts_dir}")
+    print(f"  - {plot_filename} (loss par époque)")
+    if len(iteration_losses) > 0:
+        print(f"  - {plot_filename_detailed} (loss par itération)")
+    print(f"\n✓ Graphique prêt pour le rapport (section M3)")
 
 
 if __name__ == "__main__":

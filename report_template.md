@@ -347,23 +347,31 @@ La perte initiale de 2.344882 est très proche de la valeur théorique de 2.3025
 L'overfit sur un petit échantillon a été effectué en exécutant `python -m src.overfit_small --config configs/config.yaml --overfit_size 32 --epochs 50 --lr 0.01`.
 
 **Configuration :**
-- **Taille du sous-ensemble** : `____` exemples (à compléter, recommandé : 16-64)
+- **Taille du sous-ensemble** : `32` exemples
 - **Hyperparamètres du modèle** :
-  - `blocks_per_stage` : `____` (à compléter : 2 ou 3)
-  - `dilation_stage3` : `____` (à compléter : 2 ou 3)
+  - `blocks_per_stage` : `2`
+  - `dilation_stage3` : `2`
 - **Optimisation** :
-  - Learning rate : `____` (à compléter, recommandé : 0.01 pour overfit)
+  - Learning rate : `0.01` (élevé pour permettre une mémorisation rapide)
   - Weight decay : `0.0` (désactivé pour permettre l'overfit)
   - Optimiseur : Adam
-- **Nombre d'époques** : `____` (à compléter)
+- **Nombre d'époques** : `33` (arrêt anticipé à l'époque 33 car loss < 0.01)
 
 **Résultats :**
-- **Loss initiale** : `____` (à compléter)
-- **Loss finale** : `____` (à compléter, devrait être < 0.01)
+- **Loss initiale** : `2.343865`
+- **Loss finale** : `0.009035` (très faible, < 0.01)
+- **Progression** :
+  - Epoch 1: 2.34
+  - Epoch 10: 0.70
+  - Epoch 20: 0.18
+  - Epoch 30: 0.02
+  - Epoch 33: 0.009 (arrêt anticipé)
 - **Courbe TensorBoard** : [Insérer capture d'écran de `train/loss` montrant la descente vers ~0]
+  - Logs disponibles dans : `./runs/overfit_small_32ex_20251226_165825`
+  - Tag : `train/loss`
 
 **Preuve de l'overfit :**
-[À compléter : expliquer en 2 lignes ce qui prouve l'overfit. Par exemple : "La loss d'entraînement descend jusqu'à ~0.001 après X époques, ce qui prouve que le modèle peut mémoriser parfaitement les exemples du petit échantillon. Cette capacité à sur-apprendre sur un très petit dataset confirme que le modèle a suffisamment de capacité et que la pipeline d'entraînement fonctionne correctement."]
+La loss d'entraînement descend de 2.34 à 0.009 en seulement 33 époques, ce qui prouve que le modèle peut mémoriser parfaitement les 32 exemples du petit échantillon. Cette capacité à sur-apprendre sur un très petit dataset confirme que le modèle a suffisamment de capacité (1.15M paramètres) et que la pipeline d'entraînement fonctionne correctement (gradients, optimiseur, rétropropagation). Le fait que la loss atteigne une valeur très faible (< 0.01) démontre que le modèle est capable d'apprendre et de mémoriser, ce qui est un prérequis pour un entraînement réussi sur le dataset complet.
 
 ---
 
