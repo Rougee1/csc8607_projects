@@ -58,8 +58,8 @@ train:
 
   optimizer:
     name: adam
-    lr: 0.0005                # Meilleure valeur trouvée par grid search
-    weight_decay: 0.00001      # 1e-5 : Meilleure valeur trouvée par grid search
+    lr: 0.0003                # Meilleure valeur trouvée par refined grid search (au lieu de 0.0005)
+    weight_decay: 0.00001      # 1e-5 : Meilleure valeur trouvée par grid search (confirmée)
     momentum: 0.9
 
   scheduler:

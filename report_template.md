@@ -646,7 +646,7 @@ Les comparaisons ont été générées en superposant plusieurs runs de la grid 
 ## 8) Itération supplémentaire (si temps)
 
 - **Changement(s)** : Grid search resserrée autour de la meilleure configuration (LR, Weight Decay)
-- **Résultat** : `_____` (à compléter après exécution)
+- **Résultat** : Meilleure combinaison : LR=0.0003, WD=1e-5, Val Acc=91.64% (après 5 époques)
 
 **M8.** Décrivez cette itération, la motivation et le résultat.
 
@@ -682,28 +682,47 @@ La grid search resserrée a été exécutée avec `python -m src.refined_grid_se
 *Figure : Top 9 combinaisons de la grid search resserrée, triées par Val Accuracy décroissante.*
 
 **Meilleure combinaison trouvée :**
-- **LR** : `_____` (à compléter)
-- **Weight decay** : `_____` (à compléter)
+- **LR** : `0.0003` (3.00e-04)
+- **Weight decay** : `1e-5` (1.00e-05)
 - **dilation_stage3** : `2`
 - **blocks_per_stage** : `3`
-- **Val Accuracy** : `_____` (à compléter)
-- **Val Loss** : `_____` (à compléter)
+- **Val Accuracy** : `0.9164` (91.64%)
+- **Val Loss** : `0.2458`
 
 **Comparaison avec la configuration initiale :**
 
-| Configuration | LR | Weight Decay | Val Accuracy | Amélioration |
-|---------------|----|--------------|--------------|--------------| 
-| Initiale (grid search) | 0.0005 | 1e-5 | 90.52% | - |
-| Entraînement complet | 0.0005 | 1e-5 | 96.53% | +5.01% |
-| Grid search resserrée | `_____` | `_____` | `_____` | `_____` |
+| Configuration | LR | Weight Decay | Époques | Val Accuracy | Notes |
+|---------------|----|--------------|---------|--------------|-------|
+| Initiale (grid search) | 0.0005 | 1e-5 | 5 | 90.52% | Grid search initiale |
+| Entraînement complet | 0.0005 | 1e-5 | 20 | **96.53%** | Entraînement complet |
+| Grid search resserrée (meilleure) | 0.0003 | 1e-5 | 5 | **91.64%** | +1.12% vs initiale (5 époques) |
 
 **Analyse :**
 
-[À compléter après exécution : Analyser si la grid search resserrée a permis d'améliorer les performances par rapport à la configuration initiale. Comparer les résultats avec ceux de l'entraînement complet (96.53%).]
+La grid search resserrée révèle des résultats intéressants :
+
+1. **LR plus faible (0.0003) est meilleur** : La meilleure combinaison trouvée utilise un LR de 0.0003 au lieu de 0.0005, avec une Val Accuracy de **91.64% après 5 époques**, soit **+1.12%** par rapport à la configuration initiale (90.52% après 5 époques).
+
+2. **Weight decay optimal confirmé** : Le weight decay de 1e-5 reste la meilleure valeur, confirmant le choix initial. Les valeurs plus faibles (5e-6) ou plus élevées (2e-5) donnent de moins bonnes performances.
+
+3. **Tendances observées** :
+   - **LR=0.0003** : Meilleure performance (91.64%), suivi de LR=0.0007 (91.32%), puis LR=0.0005 (90.52%)
+   - **Weight decay=1e-5** : Meilleure performance, confirmant le choix initial
+   - Les combinaisons avec weight decay=2e-5 montrent des performances dégradées (89.56% à 90.00%)
+
+4. **Limitation importante** : Ces résultats sont obtenus après seulement **5 époques**, tandis que l'entraînement complet a été effectué sur **20 époques**. Il est donc difficile de prédire avec certitude si LR=0.0003 donnerait de meilleures performances finales après 20 époques, car :
+   - Un LR plus faible peut converger plus lentement mais potentiellement atteindre un meilleur optimum
+   - Un LR plus élevé (0.0005) peut converger plus rapidement mais potentiellement moins bien
 
 **Conclusion :**
 
-[À compléter après exécution : Résumer les résultats de la grid search resserrée et indiquer si une nouvelle configuration optimale a été identifiée, ou si la configuration initiale reste la meilleure.]
+La grid search resserrée identifie **LR=0.0003 avec WD=1e-5** comme la meilleure combinaison après 5 époques, avec une amélioration de **+1.12%** par rapport à la configuration initiale (90.52% → 91.64%). Cependant, étant donné que :
+
+1. L'entraînement complet avec LR=0.0005 a atteint **96.53% après 20 époques**
+2. Les résultats de la grid search resserrée sont après seulement 5 époques
+3. Un LR plus faible (0.0003) pourrait nécessiter plus d'époques pour converger
+
+Il serait intéressant de tester un **entraînement complet (20 époques) avec LR=0.0003** pour confirmer si cette configuration peut dépasser les 96.53% obtenus avec LR=0.0005. Cependant, étant donné les excellentes performances déjà obtenues (96.53%) et le temps de calcul nécessaire, la configuration initiale (LR=0.0005, WD=1e-5) reste une excellente solution pour ce projet.
 
 ---
 
