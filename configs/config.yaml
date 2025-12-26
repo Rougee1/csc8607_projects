@@ -74,11 +74,11 @@ metrics:
   regression: []
 
 hparams:
-  lr: [0.0005, 0.001, 0.002]
-  batch_size: [32, 64]
-  weight_decay: [0.0, 0.0001]
-  dilation_stage3: [2, 3]
-  blocks_per_stage: [2, 3]
+  # LR autour de la valeur optimale trouvée (9.10e-04) : ×0.5, ×1, ×2
+  lr: [0.0005, 0.001, 0.002]  # ≈ 4.55e-04, 9.10e-04, 1.82e-03
+  weight_decay: [1e-5, 1e-4]  # Valeurs classiques pour régularisation
+  dilation_stage3: [2, 3]      # Hyperparamètre modèle 1
+  blocks_per_stage: [2, 3]     # Hyperparamètre modèle 2
 
 paths:
   runs_dir: "./runs"

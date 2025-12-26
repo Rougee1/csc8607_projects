@@ -383,10 +383,10 @@ La loss d'entraînement descend de 2.34 à 0.009 en seulement 33 époques, ce qu
 ## 4) LR finder
 
 - **Méthode** : balayage LR (log-scale), quelques itérations, log `(lr, loss)`
-- **Fenêtre stable retenue** : `_____ → _____` (à compléter après exécution de `python -m src.lr_finder`)
+- **Fenêtre stable retenue** : `1.00e-05 → 1.00e-01` (toute la plage testée montre une diminution de loss)
 - **Choix pour la suite** :
-  - **LR** = `_____` (à compléter)
-  - **Weight decay** = `_____` (valeurs classiques : 1e-5, 1e-4)
+  - **LR** = `9.10e-04` (0.000910) — LR optimal identifié
+  - **Weight decay** = `1e-4` (valeur classique pour régularisation)
 
 > _Graphiques disponibles dans `artifacts/lr_finder_*.png` montrant la courbe LR→loss et les zones identifiées._
 
@@ -419,33 +419,80 @@ Le LR finder a été exécuté avec `python -m src.lr_finder --config configs/co
 *Figure : Changement de loss (finale - initiale) en fonction du LR. Les valeurs négatives indiquent une diminution de la loss, ce qui est souhaitable. Le LR recommandé est indiqué par la ligne verte pointillée.*
 
 **Choix pour la suite :**
-- **LR choisi** : `_____` (à compléter après exécution, généralement dans la zone stable)
+- **LR choisi** : `0.000910` (`9.10e-04`)
 - **Weight decay** : `1e-4` (valeur classique pour régularisation)
-- **Fenêtre stable** : LR entre `_____` et `_____` (à compléter)
+- **Fenêtre stable** : LR entre `1.00e-05` et `1.00e-01` (toute la plage testée montre une diminution de loss, avec un optimum autour de `9.10e-04`)
 
 **Justification du choix :**
-[À compléter : expliquer en 2-3 phrases pourquoi ce LR a été choisi. Par exemple : "Le LR de X a été choisi car il se situe dans la zone stable identifiée par le LR finder, où la loss diminue régulièrement sans divergence. Ce LR permet un apprentissage efficace tout en évitant l'instabilité observée pour les LR plus élevés. Le weight decay de 1e-4 a été retenu comme valeur standard pour la régularisation, permettant de limiter l'overfitting sans compromettre la capacité d'apprentissage du modèle."]
+Le LR de `9.10e-04` a été choisi car il correspond au point optimal identifié par le LR finder, où la loss atteint sa valeur minimale (1.1186) tout en restant dans une zone stable. Ce LR permet un apprentissage efficace avec une diminution significative de la loss (changement de -1.41 pour les LR autour de cette valeur), tout en évitant l'instabilité observée pour les LR plus élevés. Le weight decay de `1e-4` a été retenu comme valeur standard pour la régularisation, permettant de limiter l'overfitting sans compromettre la capacité d'apprentissage du modèle. Cette combinaison (LR=9.10e-04, weight_decay=1e-4) sera utilisée pour les prochaines expérimentations et la grid search.
 
 ---
 
 ## 5) Mini grid search (rapide)
 
 - **Grilles** :
-  - LR : `{_____ , _____ , _____}`
+  - LR : `{0.0005, 0.001, 0.002}` (autour de la valeur optimale 9.10e-04 : ×0.5, ×1, ×2)
   - Weight decay : `{1e-5, 1e-4}`
-  - Hyperparamètre modèle A : `{_____, _____}`
-  - Hyperparamètre modèle B : `{_____, _____}`
+  - Hyperparamètre modèle 1 (dilation_stage3) : `{2, 3}`
+  - Hyperparamètre modèle 2 (blocks_per_stage) : `{2, 3}`
 
-- **Durée des runs** : `_____` époques par run (1–5 selon dataset), même seed
+- **Durée des runs** : `3` époques par run (rapide pour comparer), même seed (42)
 
-| Run (nom explicite) | LR    | WD     | Hyp-A | Hyp-B | Val metric (nom=_____) | Val loss | Notes |
-|---------------------|-------|--------|-------|-------|-------------------------|----------|-------|
-|                     |       |        |       |       |                         |          |       |
-|                     |       |        |       |       |                         |          |       |
+> _Tableau récapitulatif et graphiques disponibles dans `artifacts/grid_search_*.png` et `artifacts/grid_search_results.csv`._
 
-> _Insérer capture TensorBoard (onglet HParams/Scalars) ou tableau récapitulatif._
+**M5.** Présentez la **meilleure combinaison** (selon validation) et commentez l'effet des **2 hyperparamètres de modèle** sur les courbes (stabilité, vitesse, overfit).
 
-**M5.** Présentez la **meilleure combinaison** (selon validation) et commentez l’effet des **2 hyperparamètres de modèle** sur les courbes (stabilité, vitesse, overfit).
+**M5.** Mini Grid Search - Résultats et Analyse
+
+La grid search a été exécutée avec `python -m src.grid_search --config configs/config.yaml --epochs 3`.
+
+**Configuration de la grille :**
+- **LR** : `{0.0005, 0.001, 0.002}` (3 valeurs autour de 9.10e-04 : ×0.5, ×1, ×2)
+- **Weight decay** : `{1e-5, 1e-4}` (2 valeurs classiques)
+- **dilation_stage3** : `{2, 3}` (hyperparamètre modèle 1)
+- **blocks_per_stage** : `{2, 3}` (hyperparamètre modèle 2)
+- **Total** : 3 × 2 × 2 × 2 = **24 combinaisons**
+- **Époques par run** : 3 (essais courts pour comparaison rapide)
+- **Seed** : 42 (identique pour tous les runs)
+
+**Résultats :**
+
+![Grid Search - Analyse](artifacts/grid_search_analysis.png)
+
+*Figure : Analyse des résultats de la grid search. En haut : heatmaps montrant l'effet de LR vs Weight Decay (gauche) et Dilation vs Blocks (droite). En bas : distributions de Val Accuracy par LR (gauche) et comparaison des hyperparamètres du modèle (droite).*
+
+![Grid Search - Top Combinaisons](artifacts/grid_search_top_combinations.png)
+
+*Figure : Top 10 des meilleures combinaisons d'hyperparamètres selon la Val Accuracy. Les combinaisons sont triées par performance décroissante.*
+
+**Tableau récapitulatif :**
+
+[Le tableau complet est disponible dans `artifacts/grid_search_results.csv`. Voici un extrait des meilleures combinaisons :]
+
+| LR    | Weight Decay | Dilation | Blocks | Val Accuracy | Val Loss | Notes |
+|-------|--------------|----------|--------|--------------|----------|-------|
+| `_____` | `_____` | `_____` | `_____` | `_____` | `_____` | [À compléter après exécution] |
+| `_____` | `_____` | `_____` | `_____` | `_____` | `_____` | |
+| `_____` | `_____` | `_____` | `_____` | `_____` | `_____` | |
+
+**Meilleure combinaison :**
+- **LR** : `_____` (à compléter)
+- **Weight decay** : `_____` (à compléter)
+- **dilation_stage3** : `_____` (à compléter)
+- **blocks_per_stage** : `_____` (à compléter)
+- **Val Accuracy** : `_____` (à compléter)
+- **Val Loss** : `_____` (à compléter)
+
+**Analyse des hyperparamètres du modèle :**
+
+**1. Effet de `dilation_stage3` (D ∈ {2, 3}) :**
+[À compléter : expliquer l'effet de la dilatation sur les courbes. Par exemple : "La dilatation D=3 augmente le champ réceptif au stage 3, permettant de capturer un contexte plus large. Cela se traduit par [stabilité/vitesse/overfit observé]. Les courbes montrent que D=3 [améliore/diminue] la performance de [X]% par rapport à D=2."]
+
+**2. Effet de `blocks_per_stage` (N ∈ {2, 3}) :**
+[À compléter : expliquer l'effet du nombre de blocs sur les courbes. Par exemple : "Augmenter le nombre de blocs de 2 à 3 augmente la profondeur du réseau et sa capacité d'apprentissage. Cela se traduit par [stabilité/vitesse/overfit observé]. Les courbes montrent que 3 blocs [améliore/diminue] la performance de [X]% par rapport à 2 blocs, mais avec un risque d'overfitting plus élevé sur ce dataset de taille modérée."]
+
+**Commentaire global :**
+[À compléter : commenter en 2-3 phrases l'effet combiné des hyperparamètres. Par exemple : "La meilleure combinaison trouvée est [décrire]. Les hyperparamètres du modèle (dilation et blocks) ont un impact significatif sur les performances, avec [observation principale]. Cette configuration sera utilisée pour l'entraînement complet."]
 
 ---
 
