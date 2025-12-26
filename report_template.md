@@ -603,6 +603,44 @@ L'entraînement complet confirme l'efficacité de la configuration optimale trou
 
 **M7.** Trois **comparaisons** commentées (une phrase chacune) : LR, weight decay, hyperparamètres modèle — ce que vous attendiez vs. ce que vous observez.
 
+**M7.** Comparaisons de courbes - Analyse des hyperparamètres
+
+Les comparaisons ont été générées en superposant plusieurs runs de la grid search dans TensorBoard. Les graphiques suivants montrent l'effet de chaque hyperparamètre sur les courbes d'entraînement.
+
+**1. Comparaison des Learning Rates (LR) :**
+
+![Comparaison Learning Rate](artifacts/comparison_lr.png)
+
+*Figure : Évolution de la train loss pour différentes valeurs de LR (5 premières époques). Les autres hyperparamètres sont fixés (WD=1e-5, Dilation=2, Blocks=3).*
+
+**Attendu :** Un LR trop élevé devrait causer une instabilité (loss qui oscille ou explose), tandis qu'un LR trop faible devrait ralentir la convergence. Un LR optimal devrait permettre une descente régulière et rapide de la loss.
+
+**Observé :** Les résultats montrent que **LR=0.0005** offre la meilleure convergence avec une descente régulière et stable de la loss. Les LR plus élevés (0.001, 0.002) montrent une convergence plus rapide initialement mais peuvent devenir instables ou moins performants à long terme. Le LR=0.0005, identifié par le LR finder, confirme son efficacité avec une descente progressive et contrôlée.
+
+**2. Comparaison du Weight Decay :**
+
+![Comparaison Weight Decay](artifacts/comparison_weight_decay.png)
+
+*Figure : Comparaison train/val loss et écart train/val selon le weight decay. Les autres hyperparamètres sont fixés (LR=0.0005, Dilation=2, Blocks=3).*
+
+**Attendu :** Un weight decay plus élevé devrait réduire l'overfitting en régularisant les poids, ce qui se traduit par un écart train/val plus faible. Cependant, un weight decay trop élevé peut sous-apprendre.
+
+**Observé :** Les résultats montrent que **WD=1e-5** offre le meilleur équilibre avec un écart train/val minimal et des performances de validation supérieures. Un weight decay plus élevé (1e-4) réduit légèrement l'écart train/val mais diminue aussi les performances finales, suggérant une régularisation excessive. Le WD=1e-5 permet une bonne généralisation sans pénaliser excessivement l'apprentissage.
+
+**3. Comparaison des Hyperparamètres du Modèle :**
+
+![Comparaison Hyperparamètres Modèle](artifacts/comparison_model_hparams.png)
+
+*Figure : Comparaison de l'effet de `dilation_stage3` (haut) et `blocks_per_stage` (bas) sur train loss et val accuracy. Les autres hyperparamètres sont fixés (LR=0.0005, WD=1e-5).*
+
+**Attendu :** 
+- **Dilation** : Une dilatation plus élevée (D=3) devrait augmenter le champ réceptif et potentiellement améliorer la capacité à capturer des motifs plus larges, mais peut aussi introduire de l'instabilité.
+- **Blocks per stage** : Plus de blocs (3 vs 2) devrait augmenter la capacité du modèle et améliorer les performances, mais peut aussi augmenter le risque d'overfitting.
+
+**Observé :** 
+- **Dilation** : **D=2** donne de meilleures performances que D=3, avec une convergence plus stable et une meilleure val accuracy finale. Cela suggère que pour des images 64×64, une dilatation modérée (D=2) est suffisante pour capturer le contexte nécessaire sans introduire d'instabilité.
+- **Blocks per stage** : **3 blocs** donnent de meilleures performances que 2 blocs, avec une meilleure val accuracy et une convergence plus rapide. L'augmentation de la profondeur améliore la capacité d'apprentissage sans causer d'overfitting significatif, grâce au weight decay et aux augmentations de données appropriés.
+
 ---
 
 ## 8) Itération supplémentaire (si temps)
