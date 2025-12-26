@@ -206,9 +206,19 @@ La forme exacte d'un batch train est : `(batch_size, 3, 64, 64)` où :
 ### 2.1 Baselines
 
 **M0.**
-- **Classe majoritaire** — Métrique : `_____` → score = `_____`
-- **Prédiction aléatoire uniforme** — Métrique : `_____` → score = `_____`  
-_Commentez en 2 lignes ce que ces chiffres impliquent._
+
+Les baselines ont été calculées en exécutant `python -m src.compute_baselines --config configs/config.yaml`.
+
+- **Classe majoritaire** — Métrique : `accuracy` → score = `_____` (à compléter après exécution)
+  - La classe majoritaire est la classe [X] qui apparaît [Y] fois sur [Z] exemples d'entraînement.
+  - En prédisant toujours cette classe, on obtient une accuracy de [X]% sur la validation.
+  
+- **Prédiction aléatoire uniforme** — Métrique : `accuracy` → score = `_____` (à compléter après exécution)
+  - Accuracy théorique attendue : 1/10 = 10.0% (probabilité uniforme sur 10 classes)
+  - Accuracy observée sur validation : [X]% (à compléter après exécution)
+  - Accuracy observée sur test : [X]% (à compléter après exécution)
+
+**Commentaire** : [À compléter après exécution. Expliquer en 2 lignes ce que ces chiffres impliquent pour la tâche. Par exemple : "La classe majoritaire atteint X% d'accuracy, ce qui représente la performance minimale à dépasser. La prédiction aléatoire donne environ 10%, ce qui constitue un plancher théorique. Notre modèle devra dépasser ces deux baselines pour démontrer qu'il apprend effectivement des patterns dans les données."]
 
 ### 2.2 Architecture implémentée
 
