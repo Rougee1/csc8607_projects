@@ -114,7 +114,9 @@ def main():
     # Lire les hyperparamètres de la grille
     hparams = config['hparams']
     lrs = hparams['lr']
-    weight_decays = hparams['weight_decay']
+    # Convertir weight_decay en float si ce sont des strings
+    weight_decays_raw = hparams['weight_decay']
+    weight_decays = [float(wd) if isinstance(wd, str) else wd for wd in weight_decays_raw]
     dilation_stage3_values = hparams['dilation_stage3']
     blocks_per_stage_values = hparams['blocks_per_stage']
     
@@ -142,18 +144,21 @@ def main():
     print(f"{'='*60}")
     
     for run_idx, (lr, weight_decay, dilation_stage3, blocks_per_stage) in enumerate(combinations):
+        # S'assurer que weight_decay est un float
+        weight_decay_float = float(weight_decay) if isinstance(weight_decay, str) else weight_decay
+        
         # Nom du run
-        run_name = f"grid_lr={lr:.4f}_wd={weight_decay:.0e}_dil={dilation_stage3}_blk={blocks_per_stage}"
+        run_name = f"grid_lr={lr:.4f}_wd={weight_decay_float:.0e}_dil={dilation_stage3}_blk={blocks_per_stage}"
         
         print(f"\n[{run_idx+1}/{total_combinations}] {run_name}")
-        print(f"  LR={lr:.6f}, WD={weight_decay:.0e}, Dilation={dilation_stage3}, Blocks={blocks_per_stage}")
+        print(f"  LR={lr:.6f}, WD={weight_decay_float:.0e}, Dilation={dilation_stage3}, Blocks={blocks_per_stage}")
         
         # Créer un sous-config pour ce run
         run_config = config.copy()
         run_config['model']['dilation_stage3'] = dilation_stage3
         run_config['model']['blocks_per_stage'] = blocks_per_stage
         run_config['train']['optimizer']['lr'] = lr
-        run_config['train']['optimizer']['weight_decay'] = weight_decay
+        run_config['train']['optimizer']['weight_decay'] = weight_decay_float
         
         # Fixer la seed pour ce run (même seed pour tous)
         set_seed(args.seed)
@@ -163,7 +168,7 @@ def main():
         model = model.to(device)
         
         # Optimiseur
-        optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+        optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay_float)
         criterion = nn.CrossEntropyLoss()
         
         # TensorBoard pour ce run
@@ -174,7 +179,7 @@ def main():
         writer.add_hparams(
             {
                 'lr': lr,
-                'weight_decay': weight_decay,
+                'weight_decay': weight_decay_float,
                 'dilation_stage3': dilation_stage3,
                 'blocks_per_stage': blocks_per_stage,
             },
@@ -212,7 +217,7 @@ def main():
         results.append({
             'run_name': run_name,
             'lr': lr,
-            'weight_decay': weight_decay,
+            'weight_decay': weight_decay_float,
             'dilation_stage3': dilation_stage3,
             'blocks_per_stage': blocks_per_stage,
             'train_loss': train_loss,
