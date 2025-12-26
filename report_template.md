@@ -209,46 +209,125 @@ La forme exacte d'un batch train est : `(batch_size, 3, 64, 64)` où :
 
 Les baselines ont été calculées en exécutant `python -m src.compute_baselines --config configs/config.yaml`.
 
-- **Classe majoritaire** — Métrique : `accuracy` → score = `_____` (à compléter après exécution)
-  - La classe majoritaire est la classe [X] qui apparaît [Y] fois sur [Z] exemples d'entraînement.
-  - En prédisant toujours cette classe, on obtient une accuracy de [X]% sur la validation.
+- **Classe majoritaire** — Métrique : `accuracy` → score = `0.1080` (10.80%)
+  - La classe majoritaire est la classe **7 ("Residential")** qui apparaît **1863 fois** sur **16200** exemples d'entraînement (11.50% du dataset d'entraînement).
+  - En prédisant toujours cette classe, on obtient une accuracy de **10.80%** sur la validation et **10.26%** sur le test.
   
-- **Prédiction aléatoire uniforme** — Métrique : `accuracy` → score = `_____` (à compléter après exécution)
-  - Accuracy théorique attendue : 1/10 = 10.0% (probabilité uniforme sur 10 classes)
-  - Accuracy observée sur validation : [X]% (à compléter après exécution)
-  - Accuracy observée sur test : [X]% (à compléter après exécution)
+- **Prédiction aléatoire uniforme** — Métrique : `accuracy` → score = `0.1024` (10.24% sur validation)
+  - Accuracy théorique attendue : 1/10 = **10.00%** (probabilité uniforme sur 10 classes)
+  - Accuracy observée sur validation : **10.24%** (proche de la valeur théorique)
+  - Accuracy observée sur test : **9.44%** (légèrement en dessous de la valeur théorique, variation normale due à l'échantillonnage)
 
-**Commentaire** : [À compléter après exécution. Expliquer en 2 lignes ce que ces chiffres impliquent pour la tâche. Par exemple : "La classe majoritaire atteint X% d'accuracy, ce qui représente la performance minimale à dépasser. La prédiction aléatoire donne environ 10%, ce qui constitue un plancher théorique. Notre modèle devra dépasser ces deux baselines pour démontrer qu'il apprend effectivement des patterns dans les données."]
+**Commentaire** : La classe majoritaire atteint 10.80% d'accuracy, ce qui représente la performance minimale à dépasser. La prédiction aléatoire donne environ 10.00% (1/10), ce qui constitue un plancher théorique. Notre modèle devra dépasser ces deux baselines pour démontrer qu'il apprend effectivement des patterns dans les données. Ces résultats confirment que le dataset est relativement équilibré (la classe majoritaire ne représente que 11.50% des données), ce qui est favorable pour l'entraînement.
 
 ### 2.2 Architecture implémentée
 
 - **Description couche par couche** (ordre exact, tailles, activations, normalisations, poolings, résiduels, etc.) :
-  - Input → …
-  - Stage 1 (répéter N₁ fois) : …
-  - Stage 2 (répéter N₂ fois) : …
-  - Stage 3 (répéter N₃ fois) : …
-  - Tête (GAP / linéaire) → logits (dimension = nb classes)
+  - **Input** : `(batch_size, 3, 64, 64)` — Images RGB 64×64
+  
+  - **Stage 1** (répéter `blocks_per_stage` fois, par défaut 2) :
+    - Bloc 1 : `Conv2d(3 → 64, kernel=3×3, stride=1, padding=1, dilation=1)` → `BatchNorm2d(64)` → `ReLU()`
+    - Bloc 2 : `Conv2d(64 → 64, kernel=3×3, stride=1, padding=1, dilation=1)` → `BatchNorm2d(64)` → `ReLU()`
+    - (Si `blocks_per_stage=3`, ajouter un 3ème bloc identique)
+    - `MaxPool2d(kernel=2×2, stride=2)` → Sortie : `(batch_size, 64, 32, 32)`
+  
+  - **Stage 2** (répéter `blocks_per_stage` fois, par défaut 2) :
+    - Bloc 1 : `Conv2d(64 → 128, kernel=3×3, stride=1, padding=1, dilation=1)` → `BatchNorm2d(128)` → `ReLU()`
+    - Bloc 2 : `Conv2d(128 → 128, kernel=3×3, stride=1, padding=1, dilation=1)` → `BatchNorm2d(128)` → `ReLU()`
+    - (Si `blocks_per_stage=3`, ajouter un 3ème bloc identique)
+    - `MaxPool2d(kernel=2×2, stride=2)` → Sortie : `(batch_size, 128, 16, 16)`
+  
+  - **Stage 3** (répéter `blocks_per_stage` fois, par défaut 2) — **AVEC DILATATION** :
+    - Bloc 1 : `Conv2d(128 → 256, kernel=3×3, stride=1, padding=D, dilation=D)` → `BatchNorm2d(256)` → `ReLU()`
+    - Bloc 2 : `Conv2d(256 → 256, kernel=3×3, stride=1, padding=D, dilation=D)` → `BatchNorm2d(256)` → `ReLU()`
+    - (Si `blocks_per_stage=3`, ajouter un 3ème bloc identique)
+    - **PAS de MaxPool** au stage 3 → Sortie : `(batch_size, 256, 16, 16)`
+    - ⚠️ **Important** : `padding = dilation` pour conserver la taille spatiale (16×16)
+  
+  - **Tête de classification** :
+    - `AdaptiveAvgPool2d((1, 1))` → `(batch_size, 256, 1, 1)`
+    - `Flatten()` → `(batch_size, 256)`
+    - `Linear(256 → 10)` → Sortie : `(batch_size, 10)` ← **LOGITS**
 
 - **Loss function** :
-  - Multi-classe : CrossEntropyLoss
-  - Multi-label : BCEWithLogitsLoss
-  - (autre, si votre tâche l’impose)
+  - **Multi-classe** : `CrossEntropyLoss` (combine LogSoftmax + NLLLoss)
 
-- **Sortie du modèle** : forme = __(batch_size, num_classes)__ (ou __(batch_size, num_attributes)__)
+- **Sortie du modèle** : forme = `(batch_size, 10)` — logits pour 10 classes
 
-- **Nombre total de paramètres** : `_____`
+- **Nombre total de paramètres** : `_____` (à compléter après exécution de `python -m src.test_model`)
 
-**M1.** Décrivez l’**architecture** complète et donnez le **nombre total de paramètres**.  
-Expliquez le rôle des **2 hyperparamètres spécifiques au modèle** (ceux imposés par votre sujet).
+**M1.** Architecture complète et nombre de paramètres
+
+L'architecture implémentée est un CNN 3 stages avec dilatation au dernier stage, conçu pour classifier des images EuroSAT RGB (64×64, 10 classes).
+
+**Architecture détaillée :**
+
+1. **Stage 1** (64 canaux) : 
+   - `blocks_per_stage` blocs de convolution (par défaut 2), chacun composé de `Conv2d(3×3, padding=1, dilation=1)` → `BatchNorm2d` → `ReLU()`
+   - MaxPool 2×2 après le dernier bloc
+   - Réduit la résolution de 64×64 à 32×32
+
+2. **Stage 2** (128 canaux) :
+   - `blocks_per_stage` blocs de convolution (par défaut 2), chacun composé de `Conv2d(3×3, padding=1, dilation=1)` → `BatchNorm2d` → `ReLU()`
+   - MaxPool 2×2 après le dernier bloc
+   - Réduit la résolution de 32×32 à 16×16
+
+3. **Stage 3** (256 canaux) — **avec dilatation** :
+   - `blocks_per_stage` blocs de convolution (par défaut 2), chacun composé de `Conv2d(3×3, padding=D, dilation=D)` → `BatchNorm2d` → `ReLU()`
+   - **PAS de MaxPool** : la résolution reste 16×16
+   - La dilatation (`dilation=D`) agrandit le champ réceptif sans augmenter le nombre de paramètres
+
+4. **Tête de classification** :
+   - Global Average Pooling (`AdaptiveAvgPool2d(1)`) → `Flatten()` → `Linear(256 → 10)`
+   - Produit des logits pour 10 classes
+
+**Nombre total de paramètres** : [À compléter après exécution de `python -m src.test_model --config configs/config.yaml`]
+
+**Hyperparamètres spécifiques au modèle :**
+
+1. **`dilation_stage3`** (valeurs possibles : {2, 3}) :
+   - Contrôle le facteur de dilatation des convolutions au stage 3
+   - **Rôle** : Agrandit le champ réceptif sans augmenter le nombre de paramètres ni réduire la résolution spatiale
+   - **Impact** : Un `dilation` plus élevé (D=3) permet de capturer des patterns à plus grande échelle, mais peut perdre en précision locale
+   - **Contrainte** : `padding` doit être égal à `dilation` pour conserver la taille spatiale (16×16)
+
+2. **`blocks_per_stage`** (valeurs possibles : {2, 3}) :
+   - Contrôle le nombre de blocs de convolution par stage (identique pour les 3 stages)
+   - **Rôle** : Augmente la profondeur du réseau et sa capacité d'apprentissage
+   - **Impact** : Plus de blocs (3) = plus de paramètres et une capacité d'apprentissage plus élevée, mais risque d'overfitting sur un petit dataset
+   - **Note** : Si `blocks_per_stage=3`, chaque stage contient 3 blocs au lieu de 2
 
 
 ### 2.3 Perte initiale & premier batch
 
 - **Loss initiale attendue** (multi-classe) ≈ `-log(1/num_classes)` ; exemple 100 classes → ~4.61
-- **Observée sur un batch** : `_____`
+- **Observée sur un batch** : `_____` (à compléter après exécution de `python -m src.check_initial_loss`)
 - **Vérification** : backward OK, gradients ≠ 0
 
 **M2.** Donnez la **loss initiale** observée et dites si elle est cohérente. Indiquez la forme du batch et la forme de sortie du modèle.
+
+**M2.** Perte initiale et vérification du premier batch
+
+La vérification de la perte initiale a été effectuée en exécutant `python -m src.check_initial_loss --config configs/config.yaml`.
+
+**Formes des données :**
+- **Batch images** : `(batch_size, 3, 64, 64)` — [À compléter avec la valeur exacte de batch_size]
+- **Batch labels** : `(batch_size,)` — Labels entiers de 0 à 9
+- **Sortie du modèle (logits)** : `(batch_size, 10)` — Logits pour 10 classes
+
+**Perte initiale :**
+- **Observée** : `_____` (à compléter après exécution)
+- **Théorique** (si logits ~0) : `-log(1/10) = 2.3026`
+- **Différence** : `_____` (à compléter)
+- **Cohérence** : [À compléter : "La perte observée est cohérente avec la valeur théorique" ou expliquer pourquoi elle diffère]
+
+**Vérification des gradients :**
+- **Norme totale des gradients** : `_____` (à compléter)
+- **Gradients non-nuls** : [À compléter : "OUI" ou "NON"]
+- **Commentaire** : [À compléter : expliquer que les gradients sont bien calculés et non-nuls, ce qui confirme le bon fonctionnement de la rétropropagation]
+
+**Analyse :**
+[À compléter : expliquer en 2-3 lignes ce que ces résultats impliquent. Par exemple : "La perte initiale de X est proche de la valeur théorique de 2.30, ce qui indique que les poids sont initialisés de manière appropriée. Les gradients sont non-nuls, confirmant que la rétropropagation fonctionne correctement. Le modèle est prêt pour l'entraînement."]
 
 ---
 
