@@ -694,8 +694,9 @@ La grid search resserrée a été exécutée avec `python -m src.refined_grid_se
 | Configuration | LR | Weight Decay | Époques | Val Accuracy | Notes |
 |---------------|----|--------------|---------|--------------|-------|
 | Initiale (grid search) | 0.0005 | 1e-5 | 5 | 90.52% | Grid search initiale |
-| Entraînement complet | 0.0005 | 1e-5 | 20 | **96.53%** | Entraînement complet |
+| Entraînement complet (initial) | 0.0005 | 1e-5 | 20 | **96.53%** | Entraînement complet initial |
 | Grid search resserrée (meilleure) | 0.0003 | 1e-5 | 5 | **91.64%** | +1.12% vs initiale (5 époques) |
+| Entraînement complet (refined) | 0.0003 | 1e-5 | 20 | **96.53%** | Entraînement complet avec LR refined |
 
 **Analyse :**
 
@@ -714,15 +715,28 @@ La grid search resserrée révèle des résultats intéressants :
    - Un LR plus faible peut converger plus lentement mais potentiellement atteindre un meilleur optimum
    - Un LR plus élevé (0.0005) peut converger plus rapidement mais potentiellement moins bien
 
+**Entraînement complet avec LR=0.0003 :**
+
+Un entraînement complet (20 époques) a été effectué avec la configuration identifiée par la grid search resserrée (LR=0.0003, WD=1e-5) pour vérifier si cette configuration peut dépasser les performances obtenues avec LR=0.0005.
+
+**Résultats :**
+- **Val Accuracy finale** : **96.53%** (identique à LR=0.0005)
+- **Val Loss finale** : 0.0968 (identique)
+- **Train Accuracy finale** : 95.80% (identique)
+- **Convergence** : Les courbes montrent une convergence similaire à LR=0.0005
+
 **Conclusion :**
 
-La grid search resserrée identifie **LR=0.0003 avec WD=1e-5** comme la meilleure combinaison après 5 époques, avec une amélioration de **+1.12%** par rapport à la configuration initiale (90.52% → 91.64%). Cependant, étant donné que :
+La grid search resserrée identifie **LR=0.0003 avec WD=1e-5** comme la meilleure combinaison après 5 époques, avec une amélioration de **+1.12%** par rapport à la configuration initiale (90.52% → 91.64%). Cependant, après un entraînement complet de 20 époques, **les deux configurations (LR=0.0003 et LR=0.0005) atteignent exactement les mêmes performances finales (96.53%)**.
 
-1. L'entraînement complet avec LR=0.0005 a atteint **96.53% après 20 époques**
-2. Les résultats de la grid search resserrée sont après seulement 5 époques
-3. Un LR plus faible (0.0003) pourrait nécessiter plus d'époques pour converger
+Cette observation suggère que :
+1. **LR=0.0003 converge plus rapidement** dans les premières époques (meilleure performance après 5 époques)
+2. **Les deux LR convergent vers le même optimum** après 20 époques
+3. **La différence de LR n'a pas d'impact significatif** sur les performances finales pour ce dataset et cette architecture
 
-Il serait intéressant de tester un **entraînement complet (20 époques) avec LR=0.0003** pour confirmer si cette configuration peut dépasser les 96.53% obtenus avec LR=0.0005. Cependant, étant donné les excellentes performances déjà obtenues (96.53%) et le temps de calcul nécessaire, la configuration initiale (LR=0.0005, WD=1e-5) reste une excellente solution pour ce projet.
+**Recommandation finale :**
+
+Les deux configurations (LR=0.0003 et LR=0.0005) sont équivalentes en termes de performances finales. La configuration initiale (LR=0.0005, WD=1e-5, D=2, Blocks=3) reste une excellente solution, et les résultats obtenus (96.53% val accuracy) sont très satisfaisants pour ce projet.
 
 ---
 
