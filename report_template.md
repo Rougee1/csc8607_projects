@@ -532,7 +532,7 @@ Cette configuration optimale sera utilisée pour l'entraînement complet sur plu
   - Hyperparamètre modèle 1 (dilation_stage3) = `2` (meilleure valeur de la grid search)
   - Hyperparamètre modèle 2 (blocks_per_stage) = `3` (meilleure valeur de la grid search)
   - Batch size = `64`
-  - Époques = `_____` (à compléter après exécution, 10–20 recommandé)
+  - Époques = `20`
 - **Checkpoint** : `artifacts/best.ckpt` (selon meilleure métrique val)
 
 > _Graphiques disponibles dans `artifacts/training_curves*.png` montrant les courbes train/val (loss + accuracy)._
@@ -549,7 +549,7 @@ L'entraînement complet a été effectué avec la meilleure configuration trouv�
 - **dilation_stage3** : `2`
 - **blocks_per_stage** : `3`
 - **Batch size** : `64`
-- **Époques** : `_____` (à compléter après exécution)
+- **Époques** : `20`
 - **Optimiseur** : Adam (sans scheduler)
 - **Checkpoint sauvegardé** : `artifacts/best.ckpt` (meilleur modèle selon val accuracy)
 
@@ -564,27 +564,32 @@ L'entraînement complet a été effectué avec la meilleure configuration trouv�
 *Figure : Comparaison détaillée train vs validation avec visualisation de l'écart (zone grisée). Permet d'identifier facilement l'overfitting si l'écart augmente.*
 
 **Métriques finales :**
-- **Meilleure Val Accuracy** : `_____` (à compléter, epoch `_____`)
-- **Meilleure Val Loss** : `_____` (à compléter)
-- **Final Train Accuracy** : `_____` (à compléter)
-- **Final Val Accuracy** : `_____` (à compléter)
+- **Meilleure Val Accuracy** : `0.9653` (96.53%, epoch `20`)
+- **Meilleure Val Loss** : `0.0968`
+- **Final Train Accuracy** : `0.9580` (95.80%)
+- **Final Val Accuracy** : `0.9653` (96.53%)
 
 **Interprétation des courbes :**
 
 **1. Stabilité d'entraînement :**
-[À compléter : analyser la stabilité. Par exemple : "Les courbes montrent un entraînement stable avec une convergence régulière. La loss diminue de manière constante sans oscillations importantes, indiquant que le learning rate (0.0005) est bien choisi. Les courbes train et val suivent des trajectoires parallèles, signe d'un bon équilibre."]
+
+Les courbes montrent un entraînement très stable avec une convergence régulière et progressive. La loss diminue de manière constante sans oscillations importantes, indiquant que le learning rate (0.0005) est bien choisi. Les courbes train et val suivent des trajectoires parallèles et proches, signe d'un excellent équilibre. L'écart entre train et val reste minimal (environ 0.7% à la fin), ce qui indique un contrôle efficace de l'overfitting.
 
 **2. Sous-apprentissage (underfitting) :**
-[À compléter : analyser si le modèle sous-apprend. Par exemple : "Aucun signe de sous-apprentissage n'est observé. La loss d'entraînement continue de diminuer jusqu'à la fin, et l'accuracy d'entraînement continue d'augmenter, indiquant que le modèle a encore de la capacité d'apprentissage. Si la loss train stagne à un niveau élevé, cela indiquerait un sous-apprentissage."]
+
+Aucun signe de sous-apprentissage n'est observé. La loss d'entraînement continue de diminuer jusqu'à la fin (de 0.9443 à 0.1222), et l'accuracy d'entraînement continue d'augmenter régulièrement (de 67.08% à 95.80%), indiquant que le modèle a une bonne capacité d'apprentissage. Le modèle atteint des performances élevées sur les deux ensembles (train et val), confirmant qu'il n'y a pas de sous-apprentissage.
 
 **3. Sur-apprentissage (overfitting) :**
-[À compléter : analyser si le modèle sur-apprend. Par exemple : "Un léger overfitting est observé à partir de l'époque X, où l'écart entre train et val accuracy commence à augmenter. Cependant, cet écart reste raisonnable (environ X%), indiquant que le weight decay (1e-5) et les augmentations de données contrôlent efficacement l'overfitting. Le meilleur modèle est sélectionné à l'époque Y, avant que l'overfitting ne devienne trop important."]
+
+Aucun sur-apprentissage significatif n'est observé. L'écart entre train et val accuracy reste très faible tout au long de l'entraînement (finalement, val accuracy = 96.53% > train accuracy = 95.80%, ce qui est un excellent signe). Les courbes montrent que le modèle généralise très bien, avec une performance de validation qui dépasse même légèrement celle d'entraînement à la fin. Le weight decay (1e-5) et les augmentations de données contrôlent efficacement l'overfitting. Le meilleur modèle est sélectionné à l'époque 20, où la val accuracy atteint son maximum.
 
 **4. Convergence :**
-[À compléter : analyser la convergence. Par exemple : "Le modèle converge vers de bonnes performances (val accuracy > 90%) après environ X époques. Les courbes montrent un plateau à partir de l'époque Y, où les améliorations deviennent marginales. Le choix d'arrêter à Z époques est justifié par cette stabilisation des performances."]
+
+Le modèle converge rapidement vers de très bonnes performances (val accuracy > 90%) après seulement 4 époques (90.52% à l'époque 4). Les courbes montrent une amélioration continue jusqu'à la fin, avec des gains marginaux mais réguliers après l'époque 12 (95.83%). Le choix d'arrêter à 20 époques est justifié par l'atteinte d'excellentes performances (96.53%) et la stabilité des courbes. Le modèle continue d'améliorer légèrement jusqu'à la fin, mais les gains deviennent progressivement plus faibles.
 
 **Commentaire global :**
-[À compléter : résumer en 2-3 phrases. Par exemple : "L'entraînement complet confirme l'efficacité de la configuration optimale trouvée par la grid search. Le modèle atteint [X]% d'accuracy sur la validation, dépassant largement les baselines (10.80% pour la classe majoritaire, ~10% pour l'aléatoire). Les courbes montrent un apprentissage stable et efficace, avec un contrôle approprié de l'overfitting grâce au weight decay et aux augmentations de données."]
+
+L'entraînement complet confirme l'efficacité de la configuration optimale trouvée par la grid search. Le modèle atteint **96.53% d'accuracy sur la validation**, dépassant largement les baselines (10.80% pour la classe majoritaire, ~10% pour l'aléatoire). Les courbes montrent un apprentissage stable et efficace, avec un contrôle excellent de l'overfitting grâce au weight decay (1e-5) et aux augmentations de données. Le fait que la val accuracy dépasse légèrement la train accuracy à la fin indique une excellente généralisation du modèle.
 
 ---
 
