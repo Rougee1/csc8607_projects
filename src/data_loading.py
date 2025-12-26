@@ -10,6 +10,7 @@ Le dictionnaire meta doit contenir au minimum :
 """
 
 import torch
+import os
 from torch.utils.data import DataLoader
 from datasets import load_dataset
 from PIL import Image
@@ -74,7 +75,12 @@ def get_dataloaders(config: dict):
     
     print(f"Chargement du dataset {dataset_name} depuis HuggingFace...")
     # timm/eurosat-rgb a déjà les splits train/validation/test
-    hf_datasets = load_dataset("timm/eurosat-rgb")
+    # Utiliser le token HuggingFace depuis la config ou la variable d'environnement
+    hf_token = config['dataset'].get('hf_token') or os.environ.get('HF_TOKEN')
+    if hf_token:
+        hf_datasets = load_dataset("timm/eurosat-rgb", token=hf_token)
+    else:
+        hf_datasets = load_dataset("timm/eurosat-rgb")
     
     # Récupérer les splits
     train_split = config['dataset']['split']['train']

@@ -7,8 +7,9 @@ dataset:
     val: "validation"
     test: "test"
   download: true
-  num_workers: 4
+  num_workers: 2  # Réduit à 2 pour éviter le warning (système suggère max 2)
   shuffle: true
+  # hf_token: null  # Token HuggingFace (optionnel, peut aussi être défini via variable d'environnement HF_TOKEN)
 
 preprocess:
   resize: [64, 64]

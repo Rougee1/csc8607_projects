@@ -311,36 +311,59 @@ L'architecture implémentée est un CNN 3 stages avec dilatation au dernier stag
 La vérification de la perte initiale a été effectuée en exécutant `python -m src.check_initial_loss --config configs/config.yaml`.
 
 **Formes des données :**
-- **Batch images** : `(batch_size, 3, 64, 64)` — [À compléter avec la valeur exacte de batch_size]
-- **Batch labels** : `(batch_size,)` — Labels entiers de 0 à 9
-- **Sortie du modèle (logits)** : `(batch_size, 10)` — Logits pour 10 classes
+- **Batch images** : `torch.Size([64, 3, 64, 64])` — 64 images RGB de 64×64 pixels
+- **Batch labels** : `torch.Size([64])` — Labels entiers de 0 à 9
+- **Sortie du modèle (logits)** : `torch.Size([64, 10])` — Logits pour 10 classes
 
 **Perte initiale :**
-- **Observée** : `_____` (à compléter après exécution)
-- **Théorique** (si logits ~0) : `-log(1/10) = 2.3026`
-- **Différence** : `_____` (à compléter)
-- **Cohérence** : [À compléter : "La perte observée est cohérente avec la valeur théorique" ou expliquer pourquoi elle diffère]
+- **Observée** : `2.344882`
+- **Théorique** (si logits ~0) : `-log(1/10) = 2.302585`
+- **Différence** : `0.042297`
+- **Cohérence** : ✓ **OUI** — La perte observée est cohérente avec la valeur théorique (différence < 0.05)
 
 **Vérification des gradients :**
-- **Norme totale des gradients** : `_____` (à compléter)
-- **Gradients non-nuls** : [À compléter : "OUI" ou "NON"]
-- **Commentaire** : [À compléter : expliquer que les gradients sont bien calculés et non-nuls, ce qui confirme le bon fonctionnement de la rétropropagation]
+- **Norme totale des gradients** : `3.478104`
+- **Gradients non-nuls** : ✓ **OUI** — Les gradients sont bien calculés (norme > 1e-6)
+- **Nombre de paramètres avec gradients** : 26
 
 **Analyse :**
-[À compléter : expliquer en 2-3 lignes ce que ces résultats impliquent. Par exemple : "La perte initiale de X est proche de la valeur théorique de 2.30, ce qui indique que les poids sont initialisés de manière appropriée. Les gradients sont non-nuls, confirmant que la rétropropagation fonctionne correctement. Le modèle est prêt pour l'entraînement."]
+La perte initiale de 2.344882 est très proche de la valeur théorique de 2.302585 pour 10 classes (différence de seulement 0.042). Cela indique que les poids sont initialisés de manière appropriée et que les logits initiaux sont proches de zéro, ce qui donne une distribution de probabilités quasi-uniforme (≈10% par classe). Les gradients sont non-nuls (norme totale de 3.478), confirmant que la rétropropagation fonctionne correctement. Le modèle est prêt pour l'entraînement.
 
 ---
 
 ## 3) Overfit « petit échantillon »
 
-- **Sous-ensemble train** : `N = ____` exemples
-- **Hyperparamètres modèle utilisés** (les 2 à régler) : `_____`, `_____`
-- **Optimisation** : LR = `_____`, weight decay = `_____` (0 ou très faible recommandé)
-- **Nombre d’époques** : `_____`
+- **Sous-ensemble train** : `N = ____` exemples (à compléter après exécution de `python -m src.overfit_small`)
+- **Hyperparamètres modèle utilisés** (les 2 à régler) : `blocks_per_stage = ____`, `dilation_stage3 = ____`
+- **Optimisation** : LR = `____` (à compléter), weight decay = `0.0` (désactivé pour overfit)
+- **Nombre d’époques** : `____` (à compléter)
 
 > _Insérer capture TensorBoard : `train/loss` montrant la descente vers ~0._
 
 **M3.** Donnez la **taille du sous-ensemble**, les **hyperparamètres** du modèle utilisés, et la **courbe train/loss** (capture). Expliquez ce qui prouve l’overfit.
+
+**M3.** Overfit sur petit échantillon
+
+L'overfit sur un petit échantillon a été effectué en exécutant `python -m src.overfit_small --config configs/config.yaml --overfit_size 32 --epochs 50 --lr 0.01`.
+
+**Configuration :**
+- **Taille du sous-ensemble** : `____` exemples (à compléter, recommandé : 16-64)
+- **Hyperparamètres du modèle** :
+  - `blocks_per_stage` : `____` (à compléter : 2 ou 3)
+  - `dilation_stage3` : `____` (à compléter : 2 ou 3)
+- **Optimisation** :
+  - Learning rate : `____` (à compléter, recommandé : 0.01 pour overfit)
+  - Weight decay : `0.0` (désactivé pour permettre l'overfit)
+  - Optimiseur : Adam
+- **Nombre d'époques** : `____` (à compléter)
+
+**Résultats :**
+- **Loss initiale** : `____` (à compléter)
+- **Loss finale** : `____` (à compléter, devrait être < 0.01)
+- **Courbe TensorBoard** : [Insérer capture d'écran de `train/loss` montrant la descente vers ~0]
+
+**Preuve de l'overfit :**
+[À compléter : expliquer en 2 lignes ce qui prouve l'overfit. Par exemple : "La loss d'entraînement descend jusqu'à ~0.001 après X époques, ce qui prouve que le modèle peut mémoriser parfaitement les exemples du petit échantillon. Cette capacité à sur-apprendre sur un très petit dataset confirme que le modèle a suffisamment de capacité et que la pipeline d'entraînement fonctionne correctement."]
 
 ---
 
