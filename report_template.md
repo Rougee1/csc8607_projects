@@ -645,10 +645,65 @@ Les comparaisons ont été générées en superposant plusieurs runs de la grid 
 
 ## 8) Itération supplémentaire (si temps)
 
-- **Changement(s)** : `_____` (resserrage de grille, nouvelle valeur d’un hyperparamètre, etc.)
-- **Résultat** : `_____` (val metric, tendances des courbes)
+- **Changement(s)** : Grid search resserrée autour de la meilleure configuration (LR, Weight Decay)
+- **Résultat** : `_____` (à compléter après exécution)
 
 **M8.** Décrivez cette itération, la motivation et le résultat.
+
+**M8.** Itération supplémentaire - Grid Search Resserrée
+
+**Motivation :**
+
+Après la grid search initiale et l'entraînement complet, le modèle atteint **96.53% d'accuracy sur la validation**. Pour explorer si des valeurs plus fines d'hyperparamètres peuvent améliorer encore les performances, une **grid search resserrée** a été effectuée autour de la meilleure configuration identifiée.
+
+**Changements effectués :**
+
+Une mini grid search a été lancée avec des valeurs resserrées autour de la meilleure configuration trouvée :
+
+- **LR** : `[0.0003, 0.0005, 0.0007]` (autour de 0.0005 : -40%, base, +40%)
+- **Weight decay** : `[5e-6, 1e-5, 2e-5]` (autour de 1e-5 : -50%, base, +100%)
+- **dilation_stage3** : `[2]` (on garde la meilleure valeur identifiée)
+- **blocks_per_stage** : `[3]` (on garde la meilleure valeur identifiée)
+
+**Total** : 3 × 3 × 1 × 1 = **9 combinaisons** (au lieu de 24 pour la grid initiale)
+
+**Exécution :**
+
+La grid search resserrée a été exécutée avec `python -m src.refined_grid_search --config configs/config.yaml --epochs 5`.
+
+**Résultats :**
+
+![Analyse Grid Search Resserrée](artifacts/refined_grid_search_analysis.png)
+
+*Figure : Analyse des résultats de la grid search resserrée. Heatmap LR vs Weight Decay et distribution de Val Accuracy par LR.*
+
+![Top Combinaisons Grid Search Resserrée](artifacts/refined_grid_search_top_combinations.png)
+
+*Figure : Top 9 combinaisons de la grid search resserrée, triées par Val Accuracy décroissante.*
+
+**Meilleure combinaison trouvée :**
+- **LR** : `_____` (à compléter)
+- **Weight decay** : `_____` (à compléter)
+- **dilation_stage3** : `2`
+- **blocks_per_stage** : `3`
+- **Val Accuracy** : `_____` (à compléter)
+- **Val Loss** : `_____` (à compléter)
+
+**Comparaison avec la configuration initiale :**
+
+| Configuration | LR | Weight Decay | Val Accuracy | Amélioration |
+|---------------|----|--------------|--------------|--------------| 
+| Initiale (grid search) | 0.0005 | 1e-5 | 90.52% | - |
+| Entraînement complet | 0.0005 | 1e-5 | 96.53% | +5.01% |
+| Grid search resserrée | `_____` | `_____` | `_____` | `_____` |
+
+**Analyse :**
+
+[À compléter après exécution : Analyser si la grid search resserrée a permis d'améliorer les performances par rapport à la configuration initiale. Comparer les résultats avec ceux de l'entraînement complet (96.53%).]
+
+**Conclusion :**
+
+[À compléter après exécution : Résumer les résultats de la grid search resserrée et indiquer si une nouvelle configuration optimale a été identifiée, ou si la configuration initiale reste la meilleure.]
 
 ---
 

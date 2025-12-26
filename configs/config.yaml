@@ -80,6 +80,16 @@ hparams:
   dilation_stage3: [2, 3]      # Hyperparamètre modèle 1
   blocks_per_stage: [2, 3]     # Hyperparamètre modèle 2
 
+# Grid search resserrée autour de la meilleure configuration trouvée
+hparams_refined:
+  # LR resserré autour de 0.0005 (meilleure valeur)
+  lr: [0.0003, 0.0005, 0.0007]  # -40%, base, +40%
+  # Weight decay resserré autour de 1e-5 (meilleure valeur)
+  weight_decay: [5e-6, 1e-5, 2e-5]  # -50%, base, +100%
+  # On garde les meilleures valeurs pour les hyperparamètres du modèle
+  dilation_stage3: [2]      # Meilleure valeur identifiée
+  blocks_per_stage: [3]     # Meilleure valeur identifiée
+
 paths:
   runs_dir: "./runs"
   artifacts_dir: "./artifacts"
