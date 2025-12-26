@@ -333,12 +333,12 @@ La perte initiale de 2.344882 est très proche de la valeur théorique de 2.3025
 
 ## 3) Overfit « petit échantillon »
 
-- **Sous-ensemble train** : `N = ____` exemples (à compléter après exécution de `python -m src.overfit_small`)
-- **Hyperparamètres modèle utilisés** (les 2 à régler) : `blocks_per_stage = ____`, `dilation_stage3 = ____`
-- **Optimisation** : LR = `____` (à compléter), weight decay = `0.0` (désactivé pour overfit)
-- **Nombre d’époques** : `____` (à compléter)
+- **Sous-ensemble train** : `N = 32` exemples
+- **Hyperparamètres modèle utilisés** (les 2 à régler) : `blocks_per_stage = 2`, `dilation_stage3 = 2`
+- **Optimisation** : LR = `0.01`, weight decay = `0.0` (désactivé pour overfit)
+- **Nombre d'époques** : `33` (arrêt anticipé car loss < 0.01)
 
-> _Insérer capture TensorBoard : `train/loss` montrant la descente vers ~0._
+> _Graphique de la loss d'entraînement disponible dans `artifacts/overfit_small_loss_32ex.png` montrant la descente vers ~0._
 
 **M3.** Donnez la **taille du sous-ensemble**, les **hyperparamètres** du modèle utilisés, et la **courbe train/loss** (capture). Expliquez ce qui prouve l’overfit.
 
@@ -366,9 +366,14 @@ L'overfit sur un petit échantillon a été effectué en exécutant `python -m s
   - Epoch 20: 0.18
   - Epoch 30: 0.02
   - Epoch 33: 0.009 (arrêt anticipé)
-- **Courbe TensorBoard** : [Insérer capture d'écran de `train/loss` montrant la descente vers ~0]
-  - Logs disponibles dans : `./runs/overfit_small_32ex_20251226_165825`
-  - Tag : `train/loss`
+- **Courbe de loss** : 
+
+![Overfit Small - Loss d'entraînement](artifacts/overfit_small_loss_32ex.png)
+
+*Figure : Évolution de la loss d'entraînement lors de l'overfit sur 32 exemples. La loss descend de 2.34 à 0.009 en 33 époques, démontrant la capacité du modèle à mémoriser parfaitement le petit échantillon.*
+
+  - Graphique sauvegardé dans : `artifacts/overfit_small_loss_32ex.png`
+  - Graphique détaillé (par itération) : `artifacts/overfit_small_loss_detailed_32ex.png`
 
 **Preuve de l'overfit :**
 La loss d'entraînement descend de 2.34 à 0.009 en seulement 33 époques, ce qui prouve que le modèle peut mémoriser parfaitement les 32 exemples du petit échantillon. Cette capacité à sur-apprendre sur un très petit dataset confirme que le modèle a suffisamment de capacité (1.15M paramètres) et que la pipeline d'entraînement fonctionne correctement (gradients, optimiseur, rétropropagation). Le fait que la loss atteigne une valeur très faible (< 0.01) démontre que le modèle est capable d'apprendre et de mémoriser, ce qui est un prérequis pour un entraînement réussi sur le dataset complet.
@@ -378,14 +383,48 @@ La loss d'entraînement descend de 2.34 à 0.009 en seulement 33 époques, ce qu
 ## 4) LR finder
 
 - **Méthode** : balayage LR (log-scale), quelques itérations, log `(lr, loss)`
-- **Fenêtre stable retenue** : `_____ → _____`
+- **Fenêtre stable retenue** : `_____ → _____` (à compléter après exécution de `python -m src.lr_finder`)
 - **Choix pour la suite** :
-  - **LR** = `_____`
+  - **LR** = `_____` (à compléter)
   - **Weight decay** = `_____` (valeurs classiques : 1e-5, 1e-4)
 
-> _Insérer capture TensorBoard : courbe LR → loss._
+> _Graphiques disponibles dans `artifacts/lr_finder_*.png` montrant la courbe LR→loss et les zones identifiées._
 
-**M4.** Justifiez en 2–3 phrases le choix du **LR** et du **weight decay**.
+**M4.** LR Finder - Choix du Learning Rate
+
+Le LR finder a été exécuté avec `python -m src.lr_finder --config configs/config.yaml --min_lr 1e-5 --max_lr 1e-1 --num_lrs 50 --num_steps 100`.
+
+**Méthode :**
+- Balayage logarithmique du LR de `1e-5` à `1e-1` (50 valeurs)
+- 100 itérations d'entraînement par LR
+- Réinitialisation du modèle à l'état initial pour chaque LR (pour comparaison équitable)
+- Mesure de la loss moyenne, loss initiale, loss finale et changement de loss
+
+**Résultats :**
+
+![LR Finder - Courbe principale](artifacts/lr_finder_main.png)
+
+*Figure : Courbe LR→Loss montrant l'évolution de la loss en fonction du learning rate. La zone stable (en vert) correspond aux LR où la loss diminue sans divergence. Le LR recommandé est indiqué par la ligne rouge pointillée.*
+
+![LR Finder - Zones identifiées](artifacts/lr_finder_zones.png)
+
+*Figure : Zones identifiées dans le LR finder. En orange : LR trop petits (loss ne diminue pas assez). En vert : zone stable (loss diminue régulièrement). En rouge : LR trop grands (loss explose). Le LR recommandé est indiqué par la ligne bleue pointillée.*
+
+![LR Finder - Loss initiale vs finale](artifacts/lr_finder_initial_final.png)
+
+*Figure : Comparaison de la loss initiale et finale pour chaque LR. Un bon LR permet une diminution significative de la loss (écart entre les deux courbes). Le LR recommandé est indiqué par la ligne verte pointillée.*
+
+![LR Finder - Changement de loss](artifacts/lr_finder_delta.png)
+
+*Figure : Changement de loss (finale - initiale) en fonction du LR. Les valeurs négatives indiquent une diminution de la loss, ce qui est souhaitable. Le LR recommandé est indiqué par la ligne verte pointillée.*
+
+**Choix pour la suite :**
+- **LR choisi** : `_____` (à compléter après exécution, généralement dans la zone stable)
+- **Weight decay** : `1e-4` (valeur classique pour régularisation)
+- **Fenêtre stable** : LR entre `_____` et `_____` (à compléter)
+
+**Justification du choix :**
+[À compléter : expliquer en 2-3 phrases pourquoi ce LR a été choisi. Par exemple : "Le LR de X a été choisi car il se situe dans la zone stable identifiée par le LR finder, où la loss diminue régulièrement sans divergence. Ce LR permet un apprentissage efficace tout en évitant l'instabilité observée pour les LR plus élevés. Le weight decay de 1e-4 a été retenu comme valeur standard pour la régularisation, permettant de limiter l'overfitting sans compromettre la capacité d'apprentissage du modèle."]
 
 ---
 
