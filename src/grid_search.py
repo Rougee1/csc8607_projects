@@ -14,6 +14,7 @@ from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
 import os
 import itertools
+import json
 import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
@@ -139,6 +140,23 @@ def main():
     artifacts_dir = config['paths']['artifacts_dir']
     os.makedirs(artifacts_dir, exist_ok=True)
     
+    # Fichier de checkpoint pour reprendre en cas d'interruption
+    checkpoint_file = os.path.join(artifacts_dir, 'grid_search_checkpoint.json')
+    
+    # Charger les résultats existants si le fichier existe
+    import json
+    completed_runs = set()
+    if os.path.exists(checkpoint_file):
+        try:
+            with open(checkpoint_file, 'r') as f:
+                checkpoint_data = json.load(f)
+                results = checkpoint_data.get('results', [])
+                completed_runs = set(checkpoint_data.get('completed_runs', []))
+            print(f"\n✓ Checkpoint trouvé: {len(results)} runs déjà complétés")
+            print(f"  Reprise depuis le run {len(results)+1}/{total_combinations}")
+        except:
+            print(f"\n⚠️  Checkpoint corrompu, redémarrage depuis le début")
+    
     print(f"\n{'='*60}")
     print(f"EXÉCUTION DE LA GRID SEARCH ({total_combinations} runs)")
     print(f"{'='*60}")
@@ -149,6 +167,11 @@ def main():
         
         # Nom du run
         run_name = f"grid_lr={lr:.4f}_wd={weight_decay_float:.0e}_dil={dilation_stage3}_blk={blocks_per_stage}"
+        
+        # Vérifier si ce run a déjà été complété
+        if run_name in completed_runs:
+            print(f"\n[{run_idx+1}/{total_combinations}] {run_name} - DÉJÀ COMPLÉTÉ (skip)")
+            continue
         
         print(f"\n[{run_idx+1}/{total_combinations}] {run_name}")
         print(f"  LR={lr:.6f}, WD={weight_decay_float:.0e}, Dilation={dilation_stage3}, Blocks={blocks_per_stage}")
@@ -227,6 +250,16 @@ def main():
             'best_val_acc': best_val_acc,
             'best_val_loss': best_val_loss,
         })
+        
+        # Sauvegarder le checkpoint après chaque run
+        completed_runs.add(run_name)
+        checkpoint_data = {
+            'results': results,
+            'completed_runs': list(completed_runs)
+        }
+        with open(checkpoint_file, 'w') as f:
+            json.dump(checkpoint_data, f, indent=2)
+        print(f"    ✓ Checkpoint sauvegardé ({len(results)}/{total_combinations} runs)")
     
     # Créer un DataFrame pour le tableau
     df = pd.DataFrame(results)
