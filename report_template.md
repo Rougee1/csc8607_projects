@@ -696,7 +696,7 @@ La grid search resserrée a été exécutée avec `python -m src.refined_grid_se
 | Initiale (grid search) | 0.0005 | 1e-5 | 5 | 90.52% | Grid search initiale |
 | Entraînement complet (initial) | 0.0005 | 1e-5 | 20 | **96.53%** | Entraînement complet initial |
 | Grid search resserrée (meilleure) | 0.0003 | 1e-5 | 5 | **91.64%** | +1.12% vs initiale (5 époques) |
-| Entraînement complet (refined) | 0.0003 | 1e-5 | 20 | **96.53%** | Entraînement complet avec LR refined |
+| Entraînement complet (refined) | 0.0003 | 1e-5 | 20 | **96.52%** (epoch 17) | Entraînement complet avec LR refined |
 
 **Analyse :**
 
@@ -720,23 +720,28 @@ La grid search resserrée révèle des résultats intéressants :
 Un entraînement complet (20 époques) a été effectué avec la configuration identifiée par la grid search resserrée (LR=0.0003, WD=1e-5) pour vérifier si cette configuration peut dépasser les performances obtenues avec LR=0.0005.
 
 **Résultats :**
-- **Val Accuracy finale** : **96.53%** (identique à LR=0.0005)
-- **Val Loss finale** : 0.0968 (identique)
-- **Train Accuracy finale** : 95.80% (identique)
-- **Convergence** : Les courbes montrent une convergence similaire à LR=0.0005
+- **Meilleure Val Accuracy** : **96.52%** (epoch 17, très similaire à LR=0.0005 : 96.53%)
+- **Meilleure Val Loss** : 0.1050 (epoch 17)
+- **Final Val Accuracy** : 96.44% (epoch 20)
+- **Final Train Accuracy** : 96.14% (epoch 20)
+- **Convergence** : Les courbes montrent une convergence similaire à LR=0.0005, avec un pic de performance à l'epoch 17
 
 **Conclusion :**
 
-La grid search resserrée identifie **LR=0.0003 avec WD=1e-5** comme la meilleure combinaison après 5 époques, avec une amélioration de **+1.12%** par rapport à la configuration initiale (90.52% → 91.64%). Cependant, après un entraînement complet de 20 époques, **les deux configurations (LR=0.0003 et LR=0.0005) atteignent exactement les mêmes performances finales (96.53%)**.
+La grid search resserrée identifie **LR=0.0003 avec WD=1e-5** comme la meilleure combinaison après 5 époques, avec une amélioration de **+1.12%** par rapport à la configuration initiale (90.52% → 91.64%). Après un entraînement complet de 20 époques, **les deux configurations atteignent des performances très similaires** :
+
+- **LR=0.0005** : 96.53% (epoch 20)
+- **LR=0.0003** : 96.52% (epoch 17, meilleur), 96.44% (epoch 20, final)
 
 Cette observation suggère que :
-1. **LR=0.0003 converge plus rapidement** dans les premières époques (meilleure performance après 5 époques)
-2. **Les deux LR convergent vers le même optimum** après 20 époques
+1. **LR=0.0003 converge plus rapidement** dans les premières époques (meilleure performance après 5 époques : 91.64% vs 90.52%)
+2. **Les deux LR convergent vers le même optimum** après 20 époques (différence < 0.1%)
 3. **La différence de LR n'a pas d'impact significatif** sur les performances finales pour ce dataset et cette architecture
+4. **LR=0.0003 atteint son pic plus tôt** (epoch 17) que LR=0.0005 (epoch 20), mais les performances finales sont pratiquement identiques
 
 **Recommandation finale :**
 
-Les deux configurations (LR=0.0003 et LR=0.0005) sont équivalentes en termes de performances finales. La configuration initiale (LR=0.0005, WD=1e-5, D=2, Blocks=3) reste une excellente solution, et les résultats obtenus (96.53% val accuracy) sont très satisfaisants pour ce projet.
+Les deux configurations (LR=0.0003 et LR=0.0005) sont équivalentes en termes de performances finales (différence < 0.1%). La configuration initiale (LR=0.0005, WD=1e-5, D=2, Blocks=3) reste une excellente solution, et les résultats obtenus (**96.52-96.53% val accuracy**) sont très satisfaisants pour ce projet. Le choix entre les deux LR peut se faire sur d'autres critères (vitesse de convergence, stabilité, etc.), mais les performances finales sont pratiquement identiques.
 
 ---
 
@@ -744,10 +749,54 @@ Les deux configurations (LR=0.0003 et LR=0.0005) sont équivalentes en termes de
 
 - **Checkpoint évalué** : `artifacts/best.ckpt`
 - **Métriques test** :
-  - Metric principale (nom = `_____`) : `_____`
-  - Metric(s) secondaire(s) : `_____`
+  - Metric principale (nom = `accuracy`) : `_____` (à compléter après exécution)
+  - Metric(s) secondaire(s) : Matrice de confusion, rapport de classification par classe
 
 **M9.** Donnez les **résultats test** et comparez-les à la validation (écart raisonnable ? surapprentissage probable ?).
+
+**M9.** Évaluation finale sur le test set
+
+L'évaluation finale a été effectuée avec `python -m src.evaluate --config configs/config.yaml --checkpoint artifacts/best.ckpt`.
+
+**Checkpoint évalué :**
+- **Fichier** : `artifacts/best.ckpt`
+- **Époque** : `_____` (à compléter)
+- **Val Accuracy** : `_____` (à compléter)
+- **Val Loss** : `_____` (à compléter)
+
+**Résultats sur le test set :**
+
+- **Test Accuracy** : `_____` (à compléter, `_____%`)
+- **Test Loss** : `_____` (à compléter)
+
+**Matrice de confusion :**
+
+![Matrice de confusion - Test Set](artifacts/confusion_matrix_test.png)
+
+*Figure : Matrice de confusion sur le test set. Les valeurs sur la diagonale représentent les prédictions correctes pour chaque classe.*
+
+**Rapport de classification par classe :**
+
+[À compléter : Insérer le rapport de classification généré par le script, montrant precision, recall, F1-score pour chaque classe.]
+
+**Comparaison Test vs Validation :**
+
+| Métrique | Validation | Test | Écart |
+|----------|------------|------|-------|
+| Accuracy | `_____` | `_____` | `_____` |
+| Loss | `_____` | `_____` | `_____` |
+
+**Interprétation :**
+
+[À compléter : Analyser l'écart entre test et validation. Par exemple : "L'écart entre test (X%) et validation (Y%) est de Z%. Cet écart est [raisonnable/faible/élevé], ce qui indique [excellente généralisation/bonne généralisation/possible sur-apprentissage]. Le modèle généralise [bien/mal] aux données non vues pendant l'entraînement."]
+
+**Analyse de la matrice de confusion :**
+
+[À compléter : Identifier les classes les plus confondues et analyser les erreurs. Par exemple : "La matrice de confusion montre que la classe X est souvent confondue avec la classe Y, probablement car [raison]. Les classes Z et W sont bien distinguées, avec peu d'erreurs."]
+
+**Conclusion :**
+
+[À compléter : Résumer les résultats de l'évaluation finale et confirmer que le modèle généralise bien ou identifier des problèmes potentiels.]
 
 ---
 

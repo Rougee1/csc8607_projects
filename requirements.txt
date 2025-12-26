@@ -10,3 +10,4 @@ pandas
 datasets
 Pillow
 matplotlib
+scikit-learn
