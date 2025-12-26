@@ -321,7 +321,7 @@ def main():
     
     # Graphique: Val Accuracy par LR
     axes[1, 0].boxplot([df[df['lr'] == lr]['best_val_acc'].values for lr in sorted(df['lr'].unique())], 
-                       labels=[f'{lr:.4f}' for lr in sorted(df['lr'].unique())])
+                       tick_labels=[f'{lr:.4f}' for lr in sorted(df['lr'].unique())])
     axes[1, 0].set_xlabel('Learning Rate', fontsize=12)
     axes[1, 0].set_ylabel('Val Accuracy', fontsize=12)
     axes[1, 0].set_title('Distribution Val Accuracy par LR', fontsize=14)

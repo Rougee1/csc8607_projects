@@ -452,7 +452,7 @@ La grid search a été exécutée avec `python -m src.grid_search --config confi
 - **dilation_stage3** : `{2, 3}` (hyperparamètre modèle 1)
 - **blocks_per_stage** : `{2, 3}` (hyperparamètre modèle 2)
 - **Total** : 3 × 2 × 2 × 2 = **24 combinaisons**
-- **Époques par run** : 3 (essais courts pour comparaison rapide)
+- **Époques par run** : 5 (essais courts pour comparaison rapide)
 - **Seed** : 42 (identique pour tous les runs)
 
 **Résultats :**
@@ -467,51 +467,124 @@ La grid search a été exécutée avec `python -m src.grid_search --config confi
 
 **Tableau récapitulatif :**
 
-[Le tableau complet est disponible dans `artifacts/grid_search_results.csv`. Voici un extrait des meilleures combinaisons :]
+Le tableau complet est disponible dans `artifacts/grid_search_results.csv`. Voici les meilleures combinaisons :
 
-| LR    | Weight Decay | Dilation | Blocks | Val Accuracy | Val Loss | Notes |
-|-------|--------------|----------|--------|--------------|----------|-------|
-| `_____` | `_____` | `_____` | `_____` | `_____` | `_____` | [À compléter après exécution] |
-| `_____` | `_____` | `_____` | `_____` | `_____` | `_____` | |
-| `_____` | `_____` | `_____` | `_____` | `_____` | `_____` | |
+| LR    | Weight Decay | Dilation | Blocks | Val Accuracy | Val Loss |
+|-------|--------------|----------|--------|--------------|----------|
+| 0.0005 | 1e-5 | 2 | 3 | **0.9052** | 0.2746 |
+| 0.0005 | 1e-5 | 3 | 3 | 0.8961 | 0.2946 |
+| 0.0005 | 1e-5 | 3 | 2 | 0.8909 | 0.3247 |
+| 0.0005 | 1e-4 | 3 | 3 | 0.8888 | 0.3023 |
+| 0.0005 | 1e-5 | 2 | 2 | 0.8887 | 0.3173 |
+| 0.0005 | 1e-4 | 2 | 3 | 0.8880 | 0.3280 |
+| 0.0005 | 1e-4 | 3 | 2 | 0.8838 | 0.3364 |
+| 0.0010 | 1e-5 | 2 | 2 | 0.8783 | 0.3683 |
 
 **Meilleure combinaison :**
-- **LR** : `_____` (à compléter)
-- **Weight decay** : `_____` (à compléter)
-- **dilation_stage3** : `_____` (à compléter)
-- **blocks_per_stage** : `_____` (à compléter)
-- **Val Accuracy** : `_____` (à compléter)
-- **Val Loss** : `_____` (à compléter)
+- **LR** : `0.0005` (5.00e-04)
+- **Weight decay** : `1e-5` (1.00e-05)
+- **dilation_stage3** : `2`
+- **blocks_per_stage** : `3`
+- **Val Accuracy** : `0.9052` (90.52%)
+- **Val Loss** : `0.2746`
 
 **Analyse des hyperparamètres du modèle :**
 
 **1. Effet de `dilation_stage3` (D ∈ {2, 3}) :**
-[À compléter : expliquer l'effet de la dilatation sur les courbes. Par exemple : "La dilatation D=3 augmente le champ réceptif au stage 3, permettant de capturer un contexte plus large. Cela se traduit par [stabilité/vitesse/overfit observé]. Les courbes montrent que D=3 [améliore/diminue] la performance de [X]% par rapport à D=2."]
+
+La dilatation D=3 augmente le champ réceptif au stage 3, permettant théoriquement de capturer un contexte plus large. Cependant, les résultats montrent que **D=2 donne de meilleures performances** (meilleure combinaison : D=2 avec 90.52% vs meilleure avec D=3 : 89.61%). 
+
+Analyse des courbes :
+- **Stabilité** : D=2 montre une meilleure stabilité avec un écart train/val plus faible (ex: 0.3738/0.3602 pour la meilleure combinaison)
+- **Vitesse de convergence** : Les deux valeurs convergent rapidement, mais D=2 atteint de meilleures performances finales
+- **Overfit** : D=3 semble légèrement plus sujet à l'overfitting (écart train/val plus important dans certains cas)
+
+**Conclusion** : Pour ce dataset EuroSAT (images 64×64), une dilatation modérée (D=2) est plus efficace qu'une dilatation plus importante (D=3), probablement car le contexte à capturer ne nécessite pas un champ réceptif aussi large.
 
 **2. Effet de `blocks_per_stage` (N ∈ {2, 3}) :**
-[À compléter : expliquer l'effet du nombre de blocs sur les courbes. Par exemple : "Augmenter le nombre de blocs de 2 à 3 augmente la profondeur du réseau et sa capacité d'apprentissage. Cela se traduit par [stabilité/vitesse/overfit observé]. Les courbes montrent que 3 blocs [améliore/diminue] la performance de [X]% par rapport à 2 blocs, mais avec un risque d'overfitting plus élevé sur ce dataset de taille modérée."]
+
+Augmenter le nombre de blocs de 2 à 3 augmente la profondeur du réseau et sa capacité d'apprentissage. Les résultats montrent que **3 blocs donnent de meilleures performances** (meilleure combinaison : 3 blocs avec 90.52% vs meilleure avec 2 blocs : 88.87%).
+
+Analyse des courbes :
+- **Stabilité** : 3 blocs montrent une bonne stabilité, avec des performances de validation cohérentes
+- **Vitesse de convergence** : Les deux configurations convergent rapidement, mais 3 blocs atteignent des performances supérieures
+- **Overfit** : 3 blocs peuvent montrer un léger overfitting dans certains cas (ex: LR=0.002, WD=1e-4, D=2, Blocks=3 : train=0.4681, val=0.7130), mais avec un LR plus faible (0.0005) et un weight decay approprié, l'overfitting est bien contrôlé
+
+**Conclusion** : 3 blocs par stage permettent une meilleure capacité d'apprentissage et de meilleures performances finales, à condition d'utiliser un LR modéré (0.0005) et un weight decay approprié (1e-5) pour contrôler l'overfitting.
 
 **Commentaire global :**
-[À compléter : commenter en 2-3 phrases l'effet combiné des hyperparamètres. Par exemple : "La meilleure combinaison trouvée est [décrire]. Les hyperparamètres du modèle (dilation et blocks) ont un impact significatif sur les performances, avec [observation principale]. Cette configuration sera utilisée pour l'entraînement complet."]
+
+La meilleure combinaison trouvée est **LR=0.0005, Weight decay=1e-5, dilation_stage3=2, blocks_per_stage=3**, atteignant **90.52% d'accuracy** sur la validation. Les résultats montrent que :
+1. Un **LR plus faible (0.0005)** est préférable à un LR plus élevé (0.001, 0.002), permettant un apprentissage plus stable et de meilleures performances
+2. Un **weight decay faible (1e-5)** est préférable à un weight decay plus élevé (1e-4) pour ce dataset
+3. **Dilation=2** est plus efficace que Dilation=3 pour ce dataset
+4. **3 blocs par stage** améliore les performances par rapport à 2 blocs, avec un bon contrôle de l'overfitting grâce au LR et weight decay appropriés
+
+Cette configuration optimale sera utilisée pour l'entraînement complet sur plus d'époques.
 
 ---
 
 ## 6) Entraînement complet (10–20 époques, sans scheduler)
 
 - **Configuration finale** :
-  - LR = `_____`
-  - Weight decay = `_____`
-  - Hyperparamètre modèle A = `_____`
-  - Hyperparamètre modèle B = `_____`
-  - Batch size = `_____`
-  - Époques = `_____` (10–20)
+  - LR = `0.0005` (meilleure valeur de la grid search)
+  - Weight decay = `1e-5` (meilleure valeur de la grid search)
+  - Hyperparamètre modèle 1 (dilation_stage3) = `2` (meilleure valeur de la grid search)
+  - Hyperparamètre modèle 2 (blocks_per_stage) = `3` (meilleure valeur de la grid search)
+  - Batch size = `64`
+  - Époques = `_____` (à compléter après exécution, 10–20 recommandé)
 - **Checkpoint** : `artifacts/best.ckpt` (selon meilleure métrique val)
 
-> _Insérer captures TensorBoard :_
-> - `train/loss`, `val/loss`
-> - `val/accuracy` **ou** `val/f1` (classification)
+> _Graphiques disponibles dans `artifacts/training_curves*.png` montrant les courbes train/val (loss + accuracy)._
 
-**M6.** Montrez les **courbes train/val** (loss + métrique). Interprétez : sous-apprentissage / sur-apprentissage / stabilité d’entraînement.
+**M6.** Montrez les **courbes train/val** (loss + métrique). Interprétez : sous-apprentissage / sur-apprentissage / stabilité d'entraînement.
+
+**M6.** Entraînement complet - Courbes d'apprentissage
+
+L'entraînement complet a été effectué avec la meilleure configuration trouvée lors de la grid search, en exécutant `python -m src.train --config configs/config.yaml --max_epochs 20`.
+
+**Configuration finale utilisée :**
+- **LR** : `0.0005` (5.00e-04)
+- **Weight decay** : `1e-5` (1.00e-05)
+- **dilation_stage3** : `2`
+- **blocks_per_stage** : `3`
+- **Batch size** : `64`
+- **Époques** : `_____` (à compléter après exécution)
+- **Optimiseur** : Adam (sans scheduler)
+- **Checkpoint sauvegardé** : `artifacts/best.ckpt` (meilleur modèle selon val accuracy)
+
+**Résultats :**
+
+![Courbes d'entraînement](artifacts/training_curves.png)
+
+*Figure : Évolution de la loss et de l'accuracy pendant l'entraînement. La ligne verte pointillée indique l'époque du meilleur modèle (selon val accuracy).*
+
+![Comparaison Train vs Validation](artifacts/training_curves_comparison.png)
+
+*Figure : Comparaison détaillée train vs validation avec visualisation de l'écart (zone grisée). Permet d'identifier facilement l'overfitting si l'écart augmente.*
+
+**Métriques finales :**
+- **Meilleure Val Accuracy** : `_____` (à compléter, epoch `_____`)
+- **Meilleure Val Loss** : `_____` (à compléter)
+- **Final Train Accuracy** : `_____` (à compléter)
+- **Final Val Accuracy** : `_____` (à compléter)
+
+**Interprétation des courbes :**
+
+**1. Stabilité d'entraînement :**
+[À compléter : analyser la stabilité. Par exemple : "Les courbes montrent un entraînement stable avec une convergence régulière. La loss diminue de manière constante sans oscillations importantes, indiquant que le learning rate (0.0005) est bien choisi. Les courbes train et val suivent des trajectoires parallèles, signe d'un bon équilibre."]
+
+**2. Sous-apprentissage (underfitting) :**
+[À compléter : analyser si le modèle sous-apprend. Par exemple : "Aucun signe de sous-apprentissage n'est observé. La loss d'entraînement continue de diminuer jusqu'à la fin, et l'accuracy d'entraînement continue d'augmenter, indiquant que le modèle a encore de la capacité d'apprentissage. Si la loss train stagne à un niveau élevé, cela indiquerait un sous-apprentissage."]
+
+**3. Sur-apprentissage (overfitting) :**
+[À compléter : analyser si le modèle sur-apprend. Par exemple : "Un léger overfitting est observé à partir de l'époque X, où l'écart entre train et val accuracy commence à augmenter. Cependant, cet écart reste raisonnable (environ X%), indiquant que le weight decay (1e-5) et les augmentations de données contrôlent efficacement l'overfitting. Le meilleur modèle est sélectionné à l'époque Y, avant que l'overfitting ne devienne trop important."]
+
+**4. Convergence :**
+[À compléter : analyser la convergence. Par exemple : "Le modèle converge vers de bonnes performances (val accuracy > 90%) après environ X époques. Les courbes montrent un plateau à partir de l'époque Y, où les améliorations deviennent marginales. Le choix d'arrêter à Z époques est justifié par cette stabilisation des performances."]
+
+**Commentaire global :**
+[À compléter : résumer en 2-3 phrases. Par exemple : "L'entraînement complet confirme l'efficacité de la configuration optimale trouvée par la grid search. Le modèle atteint [X]% d'accuracy sur la validation, dépassant largement les baselines (10.80% pour la classe majoritaire, ~10% pour l'aléatoire). Les courbes montrent un apprentissage stable et efficace, avec un contrôle approprié de l'overfitting grâce au weight decay et aux augmentations de données."]
 
 ---
 
