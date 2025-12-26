@@ -160,6 +160,17 @@ def main():
     print("\n" + "="*60)
     print("RÉSUMÉ POUR LE RAPPORT (Section M2)")
     print("="*60)
+    
+    # Préparer les messages conditionnels
+    coherence_msg = "cohérente" if abs(loss_value - theoretical_loss) < 0.5 else "différente"
+    coherence_check = "✓ OUI" if abs(loss_value - theoretical_loss) < 0.5 else "⚠️ À vérifier"
+    init_msg = ("Cela indique que les poids sont initialisés de manière appropriée." 
+                if abs(loss_value - theoretical_loss) < 0.5 
+                else "Cela peut être dû à l'initialisation des poids (non-nulle).")
+    grad_status = "bien calculés" if total_grad_norm > 1e-6 else "très petits"
+    grad_check = "✓ OUI" if total_grad_norm > 1e-6 else "⚠️ NON"
+    confirm_msg = "confirme" if total_grad_norm > 1e-6 else "peut indiquer un problème avec"
+    
     print(f"""
 --- M2. Perte initiale ---
 
@@ -172,18 +183,18 @@ Perte initiale:
   - Observée: {loss_value:.6f}
   - Théorique (si logits ~0): {theoretical_loss:.6f}
   - Différence: {abs(loss_value - theoretical_loss):.6f}
-  - Cohérence: {'✓ OUI' if abs(loss_value - theoretical_loss) < 0.5 else '⚠️ À vérifier'}
+  - Cohérence: {coherence_check}
 
 Gradients:
   - Norme totale: {total_grad_norm:.6f}
-  - Gradients non-nuls: {'✓ OUI' if total_grad_norm > 1e-6 else '⚠️ NON'}
+  - Gradients non-nuls: {grad_check}
 
 Commentaire:
-  La perte initiale de {loss_value:.6f} est {'cohérente' if abs(loss_value - theoretical_loss) < 0.5 else 'différente'} 
+  La perte initiale de {loss_value:.6f} est {coherence_msg} 
   avec la valeur théorique de {theoretical_loss:.6f} pour {num_classes} classes. 
-  {'Cela indique que les poids sont initialisés de manière appropriée.' if abs(loss_value - theoretical_loss) < 0.5 else 'Cela peut être dû à l\'initialisation des poids (non-nulle).'}
-  Les gradients sont {'bien calculés' if total_grad_norm > 1e-6 else 'très petits'}, 
-  ce qui {'confirme' if total_grad_norm > 1e-6 else 'peut indiquer un problème avec'} 
+  {init_msg}
+  Les gradients sont {grad_status}, 
+  ce qui {confirm_msg} 
   le bon fonctionnement de la rétropropagation.
     """)
     
