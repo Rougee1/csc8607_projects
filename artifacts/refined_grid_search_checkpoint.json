@@ -1,0 +1,132 @@
+{
+  "results": [
+    {
+      "run_name": "refined_grid_lr=0.0003_wd=5e-06_dil=2_blk=3",
+      "lr": 0.0003,
+      "weight_decay": 5e-06,
+      "dilation_stage3": 2,
+      "blocks_per_stage": 3,
+      "train_loss": 0.3030390876719332,
+      "train_acc": 0.897699311023622,
+      "val_loss": 0.3374891331967185,
+      "val_acc": 0.8748161764705882,
+      "best_val_acc": 0.907781862745098,
+      "best_val_loss": 0.27366023817483115
+    },
+    {
+      "run_name": "refined_grid_lr=0.0003_wd=1e-05_dil=2_blk=3",
+      "lr": 0.0003,
+      "weight_decay": 1e-05,
+      "dilation_stage3": 2,
+      "blocks_per_stage": 3,
+      "train_loss": 0.30060245812408565,
+      "train_acc": 0.9008981299212598,
+      "val_loss": 0.24578470377361072,
+      "val_acc": 0.9164215686274509,
+      "best_val_acc": 0.9164215686274509,
+      "best_val_loss": 0.24578470377361072
+    },
+    {
+      "run_name": "refined_grid_lr=0.0003_wd=2e-05_dil=2_blk=3",
+      "lr": 0.0003,
+      "weight_decay": 2e-05,
+      "dilation_stage3": 2,
+      "blocks_per_stage": 3,
+      "train_loss": 0.3032975445875502,
+      "train_acc": 0.8976377952755905,
+      "val_loss": 0.295990104359739,
+      "val_acc": 0.8981617647058824,
+      "best_val_acc": 0.9,
+      "best_val_loss": 0.29229223097071927
+    },
+    {
+      "run_name": "refined_grid_lr=0.0005_wd=5e-06_dil=2_blk=3",
+      "lr": 0.0005,
+      "weight_decay": 5e-06,
+      "dilation_stage3": 2,
+      "blocks_per_stage": 3,
+      "train_loss": 0.3020033066080311,
+      "train_acc": 0.8973302165354331,
+      "val_loss": 0.28001878805020275,
+      "val_acc": 0.9006127450980391,
+      "best_val_acc": 0.9006127450980391,
+      "best_val_loss": 0.28001878805020275
+    },
+    {
+      "run_name": "refined_grid_lr=0.0005_wd=1e-05_dil=2_blk=3",
+      "lr": 0.0005,
+      "weight_decay": 1e-05,
+      "dilation_stage3": 2,
+      "blocks_per_stage": 3,
+      "train_loss": 0.30395107554990475,
+      "train_acc": 0.8962844488188977,
+      "val_loss": 0.31453134899630264,
+      "val_acc": 0.8888480392156862,
+      "best_val_acc": 0.9052083333333333,
+      "best_val_loss": 0.27461489877280065
+    },
+    {
+      "run_name": "refined_grid_lr=0.0005_wd=2e-05_dil=2_blk=3",
+      "lr": 0.0005,
+      "weight_decay": 2e-05,
+      "dilation_stage3": 2,
+      "blocks_per_stage": 3,
+      "train_loss": 0.2972403760618112,
+      "train_acc": 0.8977608267716536,
+      "val_loss": 0.3098779748467838,
+      "val_acc": 0.8955882352941177,
+      "best_val_acc": 0.8955882352941177,
+      "best_val_loss": 0.3098779748467838
+    },
+    {
+      "run_name": "refined_grid_lr=0.0007_wd=5e-06_dil=2_blk=3",
+      "lr": 0.0007,
+      "weight_decay": 5e-06,
+      "dilation_stage3": 2,
+      "blocks_per_stage": 3,
+      "train_loss": 0.32871113139696007,
+      "train_acc": 0.8878567913385826,
+      "val_loss": 0.2776032831738977,
+      "val_acc": 0.9090073529411765,
+      "best_val_acc": 0.9090073529411765,
+      "best_val_loss": 0.2776032831738977
+    },
+    {
+      "run_name": "refined_grid_lr=0.0007_wd=1e-05_dil=2_blk=3",
+      "lr": 0.0007,
+      "weight_decay": 1e-05,
+      "dilation_stage3": 2,
+      "blocks_per_stage": 3,
+      "train_loss": 0.32922770223748965,
+      "train_acc": 0.8858882874015748,
+      "val_loss": 0.26342755310675675,
+      "val_acc": 0.913235294117647,
+      "best_val_acc": 0.913235294117647,
+      "best_val_loss": 0.26342755310675675
+    },
+    {
+      "run_name": "refined_grid_lr=0.0007_wd=2e-05_dil=2_blk=3",
+      "lr": 0.0007,
+      "weight_decay": 2e-05,
+      "dilation_stage3": 2,
+      "blocks_per_stage": 3,
+      "train_loss": 0.31635881074535566,
+      "train_acc": 0.89185531496063,
+      "val_loss": 0.31061110917259666,
+      "val_acc": 0.8924019607843138,
+      "best_val_acc": 0.8924019607843138,
+      "best_val_loss": 0.31061110917259666
+    }
+  ],
+  "completed_runs": [
+    "refined_grid_lr=0.0007_wd=5e-06_dil=2_blk=3",
+    "refined_grid_lr=0.0003_wd=2e-05_dil=2_blk=3",
+    "refined_grid_lr=0.0007_wd=1e-05_dil=2_blk=3",
+    "refined_grid_lr=0.0003_wd=1e-05_dil=2_blk=3",
+    "refined_grid_lr=0.0007_wd=2e-05_dil=2_blk=3",
+    "refined_grid_lr=0.0005_wd=1e-05_dil=2_blk=3",
+    "refined_grid_lr=0.0003_wd=5e-06_dil=2_blk=3",
+    "refined_grid_lr=0.0005_wd=2e-05_dil=2_blk=3",
+    "refined_grid_lr=0.0005_wd=5e-06_dil=2_blk=3"
+  ]
+}
