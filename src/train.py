@@ -13,6 +13,7 @@ import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
 import os
+import time
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -35,6 +36,7 @@ def train_one_epoch(model, train_loader, criterion, optimizer, device):
     total_loss = 0.0
     total_acc = 0.0
     num_batches = 0
+    total_grad_norm = 0.0
     
     for images, labels in train_loader:
         images = images.to(device)
@@ -44,13 +46,22 @@ def train_one_epoch(model, train_loader, criterion, optimizer, device):
         logits = model(images)
         loss = criterion(logits, labels)
         loss.backward()
+        
+        # Calculer la norme des gradients
+        grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=float('inf'))
+        total_grad_norm += grad_norm.item()
+        
         optimizer.step()
         
         total_loss += loss.item()
         total_acc += compute_accuracy(logits, labels)
         num_batches += 1
     
-    return total_loss / num_batches, total_acc / num_batches
+    avg_loss = total_loss / num_batches
+    avg_acc = total_acc / num_batches
+    avg_grad_norm = total_grad_norm / num_batches
+    
+    return avg_loss, avg_acc, avg_grad_norm
 
 
 def evaluate(model, val_loader, criterion, device):
@@ -188,13 +199,20 @@ def main():
     # TensorBoard
     runs_dir = config['paths']['runs_dir']
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_name = f"train_final_{timestamp}"
+    
+    # Nom explicite incluant les hyperparamètres
+    lr = optimizer_config['lr']
+    weight_decay = optimizer_config['weight_decay']
+    dilation = model_config['dilation_stage3']
+    blocks = model_config['blocks_per_stage']
+    run_name = f"train_lr={lr:.4f}_wd={weight_decay:.0e}_dil={dilation}_blk={blocks}_{timestamp}"
     log_dir = os.path.join(runs_dir, run_name)
     writer = SummaryWriter(log_dir)
     
     print(f"\nTensorBoard:")
     print(f"  - Log dir: {log_dir}")
-    print(f"  - Tags: train/loss, val/loss, val/accuracy")
+    print(f"  - Run name: {run_name}")
+    print(f"  - Tags: train/loss, val/loss, val/accuracy, train/accuracy, train/lr, train/grad_norm, train/time_per_epoch")
     
     # Sauvegarder la config
     save_config_snapshot(config, log_dir)
@@ -220,17 +238,28 @@ def main():
     print(f"{'='*60}")
     
     for epoch in range(epochs):
+        epoch_start_time = time.time()
+        
         # Train
-        train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
+        train_loss, train_acc, grad_norm = train_one_epoch(model, train_loader, criterion, optimizer, device)
         
         # Validation
         val_loss, val_acc = evaluate(model, val_loader, criterion, device)
+        
+        # Temps par époque
+        epoch_time = time.time() - epoch_start_time
+        
+        # LR courant
+        current_lr = optimizer.param_groups[0]['lr']
         
         # Logger dans TensorBoard
         writer.add_scalar('train/loss', train_loss, epoch)
         writer.add_scalar('train/accuracy', train_acc, epoch)
         writer.add_scalar('val/loss', val_loss, epoch)
         writer.add_scalar('val/accuracy', val_acc, epoch)
+        writer.add_scalar('train/lr', current_lr, epoch)
+        writer.add_scalar('train/grad_norm', grad_norm, epoch)
+        writer.add_scalar('train/time_per_epoch', epoch_time, epoch)
         
         # Stocker pour graphiques
         train_losses.append(train_loss)

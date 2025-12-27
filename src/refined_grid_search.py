@@ -203,6 +203,9 @@ def main():
         log_dir = os.path.join(runs_dir, run_name)
         writer = SummaryWriter(log_dir)
         
+        # Sauvegarder la config pour ce run
+        save_config_snapshot(run_config, log_dir)
+        
         # Logger les hyperparamètres dans TensorBoard HParams
         writer.add_hparams(
             {
