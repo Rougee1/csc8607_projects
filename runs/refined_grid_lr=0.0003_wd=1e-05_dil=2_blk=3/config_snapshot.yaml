@@ -1,0 +1,111 @@
+augment:
+  color_jitter:
+    brightness: 0.1
+    contrast: 0.1
+    hue: 0.0
+    saturation: 0.1
+  random_crop:
+    padding: 4
+    size:
+    - 64
+    - 64
+  random_flip: true
+  spec_augment: null
+dataset:
+  download: true
+  name: eurosat_rgb
+  num_workers: 2
+  root: ./data
+  shuffle: true
+  split:
+    test: test
+    train: train
+    val: validation
+hparams:
+  blocks_per_stage:
+  - 2
+  - 3
+  dilation_stage3:
+  - 2
+  - 3
+  lr:
+  - 0.0005
+  - 0.001
+  - 0.002
+  weight_decay:
+  - 1e-5
+  - 1e-4
+hparams_refined:
+  blocks_per_stage:
+  - 3
+  dilation_stage3:
+  - 2
+  lr:
+  - 0.0003
+  - 0.0005
+  - 0.0007
+  weight_decay:
+  - 5e-6
+  - 1e-5
+  - 2e-5
+metrics:
+  classification:
+  - accuracy
+  regression: []
+model:
+  activation: relu
+  attention: false
+  batch_norm: true
+  blocks_per_stage: 3
+  channels:
+  - 64
+  - 128
+  - 256
+  dilation_stage3: 2
+  dropout: 0.0
+  input_shape:
+  - 3
+  - 64
+  - 64
+  num_classes: 10
+  residual: false
+  rnn:
+    bidirectional: false
+    hidden_size: null
+    num_layers: null
+    type: null
+  type: cnn_dilated_stage3
+paths:
+  artifacts_dir: ./artifacts
+  runs_dir: ./runs
+preprocess:
+  normalize:
+    mean:
+    - 0.485
+    - 0.456
+    - 0.406
+    std:
+    - 0.229
+    - 0.224
+    - 0.225
+  resize:
+  - 64
+  - 64
+  text_tokenizer: null
+train:
+  batch_size: 64
+  device: auto
+  epochs: 15
+  max_steps: null
+  optimizer:
+    lr: 0.0003
+    momentum: 0.9
+    name: adam
+    weight_decay: 1.0e-05
+  overfit_small: false
+  scheduler:
+    gamma: 0.1
+    name: none
+    step_size: 10
+    warmup_steps: 0
+  seed: 42
