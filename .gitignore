@@ -13,3 +13,7 @@ artifacts/
 .DS_Store
 .vscode/
 .idea/
+
+# Fichiers Markdown (sauf report_template.md)
+*.md
+!report_template.md

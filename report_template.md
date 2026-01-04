@@ -547,17 +547,17 @@ Cette configuration optimale sera utilisée pour l'entraînement complet sur plu
 
 **M6.** Entraînement complet - Courbes d'apprentissage
 
-L'entraînement complet a été effectué avec la meilleure configuration trouvée lors de la grid search, en exécutant `python -m src.train --config configs/config.yaml --max_epochs 20`.
+L'entraînement complet a été effectué avec la meilleure configuration trouvée lors de la refined grid search, en exécutant `python -m src.train --config configs/config.yaml --max_epochs 20`.
 
 **Configuration finale utilisée :**
-- **LR** : `0.0005` (5.00e-04)
+- **LR** : `0.0003` (3.00e-04) — Meilleure valeur trouvée par refined grid search
 - **Weight decay** : `1e-5` (1.00e-05)
 - **dilation_stage3** : `2`
 - **blocks_per_stage** : `3`
 - **Batch size** : `64`
 - **Époques** : `20`
 - **Optimiseur** : Adam (sans scheduler)
-- **Checkpoint sauvegardé** : `artifacts/best.ckpt` (meilleur modèle selon val accuracy)
+- **Checkpoint sauvegardé** : `artifacts/best.ckpt` (meilleur modèle selon val accuracy, époque 17)
 
 **Résultats :**
 
@@ -570,32 +570,32 @@ L'entraînement complet a été effectué avec la meilleure configuration trouv�
 *Figure : Comparaison détaillée train vs validation avec visualisation de l'écart (zone grisée). Permet d'identifier facilement l'overfitting si l'écart augmente.*
 
 **Métriques finales :**
-- **Meilleure Val Accuracy** : `0.9653` (96.53%, epoch `20`)
-- **Meilleure Val Loss** : `0.0968`
-- **Final Train Accuracy** : `0.9580` (95.80%)
-- **Final Val Accuracy** : `0.9653` (96.53%)
+- **Meilleure Val Accuracy** : `0.9652` (96.52%, epoch `17`)
+- **Meilleure Val Loss** : `0.1050`
+- **Final Train Accuracy** : `0.9614` (96.14%)
+- **Final Val Accuracy** : `0.9644` (96.44%)
 
 **Interprétation des courbes :**
 
 **1. Stabilité d'entraînement :**
 
-Les courbes montrent un entraînement très stable avec une convergence régulière et progressive. La loss diminue de manière constante sans oscillations importantes, indiquant que le learning rate (0.0005) est bien choisi. Les courbes train et val suivent des trajectoires parallèles et proches, signe d'un excellent équilibre. L'écart entre train et val reste minimal (environ 0.7% à la fin), ce qui indique un contrôle efficace de l'overfitting.
+Les courbes montrent un entraînement très stable avec une convergence régulière et progressive. La loss diminue de manière constante sans oscillations importantes, indiquant que le learning rate (0.0003) est bien choisi. Les courbes train et val suivent des trajectoires parallèles et proches, signe d'un excellent équilibre. L'écart entre train et val reste minimal (environ 0.3% à la fin), ce qui indique un contrôle efficace de l'overfitting.
 
 **2. Sous-apprentissage (underfitting) :**
 
-Aucun signe de sous-apprentissage n'est observé. La loss d'entraînement continue de diminuer jusqu'à la fin (de 0.9443 à 0.1222), et l'accuracy d'entraînement continue d'augmenter régulièrement (de 67.08% à 95.80%), indiquant que le modèle a une bonne capacité d'apprentissage. Le modèle atteint des performances élevées sur les deux ensembles (train et val), confirmant qu'il n'y a pas de sous-apprentissage.
+Aucun signe de sous-apprentissage n'est observé. La loss d'entraînement continue de diminuer jusqu'à la fin, et l'accuracy d'entraînement continue d'augmenter régulièrement (jusqu'à 96.14%), indiquant que le modèle a une bonne capacité d'apprentissage. Le modèle atteint des performances élevées sur les deux ensembles (train et val), confirmant qu'il n'y a pas de sous-apprentissage.
 
 **3. Sur-apprentissage (overfitting) :**
 
-Aucun sur-apprentissage significatif n'est observé. L'écart entre train et val accuracy reste très faible tout au long de l'entraînement (finalement, val accuracy = 96.53% > train accuracy = 95.80%, ce qui est un excellent signe). Les courbes montrent que le modèle généralise très bien, avec une performance de validation qui dépasse même légèrement celle d'entraînement à la fin. Le weight decay (1e-5) et les augmentations de données contrôlent efficacement l'overfitting. Le meilleur modèle est sélectionné à l'époque 20, où la val accuracy atteint son maximum.
+Aucun sur-apprentissage significatif n'est observé. L'écart entre train et val accuracy reste très faible tout au long de l'entraînement (finalement, val accuracy = 96.44% > train accuracy = 96.14%, ce qui est un excellent signe). Les courbes montrent que le modèle généralise très bien, avec une performance de validation qui dépasse même légèrement celle d'entraînement à la fin. Le weight decay (1e-5) et les augmentations de données contrôlent efficacement l'overfitting. Le meilleur modèle est sélectionné à l'époque 17, où la val accuracy atteint son maximum (96.52%).
 
 **4. Convergence :**
 
-Le modèle converge rapidement vers de très bonnes performances (val accuracy > 90%) après seulement 4 époques (90.52% à l'époque 4). Les courbes montrent une amélioration continue jusqu'à la fin, avec des gains marginaux mais réguliers après l'époque 12 (95.83%). Le choix d'arrêter à 20 époques est justifié par l'atteinte d'excellentes performances (96.53%) et la stabilité des courbes. Le modèle continue d'améliorer légèrement jusqu'à la fin, mais les gains deviennent progressivement plus faibles.
+Le modèle converge rapidement vers de très bonnes performances (val accuracy > 90%) après seulement quelques époques. Les courbes montrent une amélioration continue jusqu'à l'époque 17, où la meilleure performance est atteinte (96.52%). Le choix d'arrêter à 20 époques est justifié par l'atteinte d'excellentes performances (96.52% à l'époque 17) et la stabilité des courbes. Le modèle continue d'améliorer légèrement jusqu'à la fin, mais les gains deviennent progressivement plus faibles.
 
 **Commentaire global :**
 
-L'entraînement complet confirme l'efficacité de la configuration optimale trouvée par la grid search. Le modèle atteint **96.53% d'accuracy sur la validation**, dépassant largement les baselines (10.80% pour la classe majoritaire, ~10% pour l'aléatoire). Les courbes montrent un apprentissage stable et efficace, avec un contrôle excellent de l'overfitting grâce au weight decay (1e-5) et aux augmentations de données. Le fait que la val accuracy dépasse légèrement la train accuracy à la fin indique une excellente généralisation du modèle.
+L'entraînement complet confirme l'efficacité de la configuration optimale trouvée par la refined grid search. Le modèle atteint **96.52% d'accuracy sur la validation** (époque 17), dépassant largement les baselines (10.80% pour la classe majoritaire, ~10% pour l'aléatoire). Les courbes montrent un apprentissage stable et efficace, avec un contrôle excellent de l'overfitting grâce au weight decay (1e-5) et aux augmentations de données. Le fait que la val accuracy dépasse légèrement la train accuracy à la fin indique une excellente généralisation du modèle. Le learning rate de 0.0003 (trouvé par la refined grid search) permet une convergence rapide et stable.
 
 ---
 
@@ -906,7 +906,7 @@ Chaque run sauvegarde automatiquement un snapshot de la configuration dans `runs
 
 ## 11) Reproductibilité
 
-- **Seed** : `_____`
+- **Seed** : `42`
 - **Config utilisée** : joindre un extrait de `configs/config.yaml` (sections pertinentes)
 - **Commandes exactes** :
 
